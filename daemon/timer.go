@@ -46,11 +46,19 @@ func (t *Timer) Stop() {
 }
 
 func (t *Timer) Start() {
+	if t.ticking {
+		return
+	}
+
 	t.ticking = true
 	go func() {
 		for {
-			//previous tick was the last mbu
-			//stop ticking
+
+			//wait for next mbu to arrive
+			<-time.After(t.mbu)
+
+			//previous tick was the last mbu, don't
+			//increment this mbu
 			if !t.ticking {
 				return
 			}
@@ -60,8 +68,6 @@ func (t *Timer) Start() {
 			t.inc <- i
 			i <- t.mbu
 
-			//wait for next mbu to arrive
-			<-time.After(t.mbu)
 		}
 	}()
 }
