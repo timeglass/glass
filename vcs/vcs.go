@@ -8,7 +8,7 @@ import (
 type VCS interface {
 	Name() string
 	Supported() bool
-	WriteHooks() error
+	Hook() error
 }
 
 func GetVCS(dir string) (VCS, error) {

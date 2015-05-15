@@ -39,7 +39,7 @@ func (g *Git) Supported() bool {
 	return true
 }
 
-func (g *Git) WriteHooks() error {
+func (g *Git) Hook() error {
 	hpath := filepath.Join(g.dir, "hooks")
 
 	postchf, err := os.Create(filepath.Join(hpath, "post-checkout"))

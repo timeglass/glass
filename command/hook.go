@@ -10,35 +10,35 @@ import (
 	"github.com/advanderveer/timer/vcs"
 )
 
-type Init struct {
+type Hook struct {
 	*command
 }
 
-func NewInit() *Init {
-	return &Init{newCommand()}
+func NewHook() *Hook {
+	return &Hook{newCommand()}
 }
 
-func (c *Init) Name() string {
-	return "init"
+func (c *Hook) Name() string {
+	return "hook"
 }
 
-func (c *Init) Description() string {
+func (c *Hook) Description() string {
 	return fmt.Sprintf("<description>")
 }
 
-func (c *Init) Usage() string {
+func (c *Hook) Usage() string {
 	return "<usage>"
 }
 
-func (c *Init) Flags() []cli.Flag {
+func (c *Hook) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
-func (c *Init) Action() func(ctx *cli.Context) {
+func (c *Hook) Action() func(ctx *cli.Context) {
 	return c.command.Action(c.Run)
 }
 
-func (c *Init) Run(ctx *cli.Context) error {
+func (c *Hook) Run(ctx *cli.Context) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
@@ -49,13 +49,10 @@ func (c *Init) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	err = vcs.WriteHooks()
+	err = vcs.Hook()
 	if err != nil {
 		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
 	}
-
-	_ = vcs
-	//@todo init hooks
 
 	return nil
 }
