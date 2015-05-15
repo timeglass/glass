@@ -10,35 +10,35 @@ import (
 	"github.com/advanderveer/timer/model"
 )
 
-type Start struct {
+type Stop struct {
 	*command
 }
 
-func NewStart() *Start {
-	return &Start{newCommand()}
+func NewStop() *Stop {
+	return &Stop{newCommand()}
 }
 
-func (c *Start) Name() string {
-	return "start"
+func (c *Stop) Name() string {
+	return "stop"
 }
 
-func (c *Start) Description() string {
+func (c *Stop) Description() string {
 	return fmt.Sprintf("<description>")
 }
 
-func (c *Start) Usage() string {
+func (c *Stop) Usage() string {
 	return "<usage>"
 }
 
-func (c *Start) Flags() []cli.Flag {
+func (c *Stop) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
-func (c *Start) Action() func(ctx *cli.Context) {
+func (c *Stop) Action() func(ctx *cli.Context) {
 	return c.command.Action(c.Run)
 }
 
-func (c *Start) Run(ctx *cli.Context) error {
+func (c *Stop) Run(ctx *cli.Context) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
@@ -51,16 +51,15 @@ func (c *Start) Run(ctx *cli.Context) error {
 	}
 
 	client := NewClient(info)
-	err = client.Call("timer.start")
+	err = client.Call("timer.stop")
 	if err != nil {
-		if err != ErrDaemonDown {
+		if err == ErrDaemonDown {
+			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
+		} else {
 			return err
 		}
-
-		fmt.Println("Starting Deamon is not yet implemented")
-		//@todo start the daemon
 	}
 
-	fmt.Println("Timer started")
+	fmt.Println("Timer Stopped")
 	return nil
 }
