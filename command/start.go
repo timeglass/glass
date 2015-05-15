@@ -2,8 +2,13 @@ package command
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/codegangsta/cli"
+	"github.com/hashicorp/errwrap"
+
+	"github.com/advanderveer/timer/model"
 )
 
 type Start struct {
@@ -35,6 +40,18 @@ func (c *Start) Action() func(ctx *cli.Context) {
 }
 
 func (c *Start) Run(ctx *cli.Context) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
+	}
+
+	m := model.New(filepath.Join(dir, "timer.db"))
+	daddr, err := m.ReadDaemonAddr()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
+	}
+
+	fmt.Println(daddr)
 
 	return nil
 }

@@ -7,4 +7,4 @@ run-deamon:
 
 run-cli:
 	go run -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" \
-		./main.go
+		./main.go start
