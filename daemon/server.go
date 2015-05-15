@@ -18,13 +18,13 @@ type Server struct {
 }
 
 //@todo show version
-func info(c *echo.Context) *echo.HTTPError {
-	return c.String(http.StatusOK, "Hello, World!\n")
+func version(c *echo.Context) *echo.HTTPError {
+	return c.String(http.StatusOK, fmt.Sprintf("Daemon %s (%s)", Version, Build))
 }
 
 func NewServer(httpb string) (*Server, error) {
 	router := echo.New()
-	router.Get("/", info)
+	router.Get("/", version)
 
 	l, err := net.Listen("tcp", httpb)
 	if err != nil {

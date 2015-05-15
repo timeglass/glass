@@ -1,13 +1,19 @@
 package main
 
 import (
+	"flag"
 	"log"
 )
 
-func main() {
-	bind := ":0"
+var Version = "0.0.0"
+var Build = "gobuild"
 
-	svr, err := NewServer(bind)
+var bind = flag.String("bind", ":0", "Address to bind the Daemon to")
+
+func main() {
+	flag.Parse()
+
+	svr, err := NewServer(*bind)
 	if err != nil {
 		log.Fatal(err)
 	}
