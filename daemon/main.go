@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"strings"
 	"time"
 )
 
@@ -22,5 +23,8 @@ func main() {
 	}
 
 	log.Printf("Listening on '%s'", svr.Addr())
-	log.Fatal(svr.Start())
+	err = svr.Start()
+	if err != nil && !strings.Contains(err.Error(), "closed network connection") {
+		log.Fatal(err)
+	}
 }

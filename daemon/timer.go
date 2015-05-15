@@ -5,8 +5,9 @@ import (
 )
 
 type Timer struct {
-	mbu  time.Duration
-	time time.Duration
+	mbu     time.Duration
+	time    time.Duration
+	ticking bool
 
 	read chan chan time.Duration
 	inc  chan chan time.Duration
@@ -19,7 +20,7 @@ func NewTimer(mbu time.Duration) *Timer {
 		inc:  make(chan chan time.Duration),
 	}
 
-	//handle read/writes
+	//handle read& increments
 	go func() {
 		for {
 			select {
@@ -40,23 +41,27 @@ func (t *Timer) Time() time.Duration {
 	return <-r
 }
 
-func (t *Timer) Stop() error {
-
-	return nil
+func (t *Timer) Stop() {
+	t.ticking = false
 }
 
-func (t *Timer) Start() error {
+func (t *Timer) Start() {
+	t.ticking = true
 	go func() {
 		for {
+			//previous tick was the last mbu
+			//stop ticking
+			if !t.ticking {
+				return
+			}
 
-			//start with increment
+			//increment with mbu
 			i := make(chan time.Duration)
 			t.inc <- i
 			i <- t.mbu
 
+			//wait for next mbu to arrive
 			<-time.After(t.mbu)
 		}
 	}()
-
-	return nil
 }
