@@ -10,6 +10,7 @@ import (
 )
 
 type Server struct {
+	timer    *Timer
 	httpb    string
 	router   *echo.Echo
 	listener net.Listener
@@ -17,12 +18,11 @@ type Server struct {
 	*http.Server
 }
 
-//@todo show version
 func version(c *echo.Context) *echo.HTTPError {
 	return c.String(http.StatusOK, fmt.Sprintf("Daemon %s (%s)", Version, Build))
 }
 
-func NewServer(httpb string) (*Server, error) {
+func NewServer(httpb string, timer *Timer) (*Server, error) {
 	router := echo.New()
 	router.Get("/", version)
 
@@ -32,6 +32,7 @@ func NewServer(httpb string) (*Server, error) {
 	}
 
 	return &Server{
+		timer:    timer,
 		httpb:    httpb,
 		router:   router,
 		listener: l,
@@ -44,5 +45,10 @@ func (s *Server) Addr() string {
 }
 
 func (s *Server) Start() error {
+	err := s.timer.Start()
+	if err != nil {
+		return errwrap.Wrapf("Failted to start Timer: {{err}}", err)
+	}
+
 	return s.Server.Serve(s.listener)
 }
