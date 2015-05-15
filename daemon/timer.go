@@ -54,6 +54,7 @@ func (t *Timer) Stop() {
 func (t *Timer) Start() {
 	t.Lock()
 	if t.ticking {
+		t.Unlock()
 		return
 	}
 
