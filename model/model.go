@@ -1,7 +1,10 @@
 package model
 
 import (
+	"crypto/md5"
 	"fmt"
+	"os"
+	"os/user"
 	"path/filepath"
 	"time"
 
@@ -10,19 +13,36 @@ import (
 )
 
 type Model struct {
-	dbpath string
+	repoDir     string
+	repoDirHash string
 }
 
 func New(dir string) *Model {
-	return &Model{filepath.Join(dir, "timer.db")}
+	hash := md5.Sum([]byte(dir))
+
+	return &Model{
+		repoDir:     dir,
+		repoDirHash: fmt.Sprintf("%x", hash),
+	}
 }
 
 func (m *Model) Open() (*bolt.DB, error) {
-	opts := &bolt.Options{Timeout: time.Millisecond * 100}
-
-	db, err := bolt.Open(m.dbpath, 0600, opts)
+	u, err := user.Current()
 	if err != nil {
-		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to open database '%s': {{err}}", m.dbpath), err)
+		return nil, errwrap.Wrapf("Failed to detect current user for opening database: {{err}}", err)
+	}
+
+	dbdir := filepath.Join(u.HomeDir, ".sourceclock")
+	err = os.MkdirAll(dbdir, 0777)
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to create directory '%s' for opening database: {{err}}", dbdir), err)
+	}
+
+	dbpath := filepath.Join(dbdir, m.repoDirHash+".db")
+	opts := &bolt.Options{Timeout: time.Millisecond * 100}
+	db, err := bolt.Open(dbpath, 0600, opts)
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to open database '%s': {{err}}", dbpath), err)
 	}
 
 	return db, nil
@@ -68,7 +88,8 @@ func (m *Model) ReadDaemonInfo() (*Daemon, error) {
 		var err error
 		b := tx.Bucket([]byte(MetaBucketName))
 		if b == nil {
-			return fmt.Errorf("Failed to open daemon bucket")
+			info = &Daemon{}
+			return nil
 		}
 
 		data := b.Get([]byte(DeamonKeyName))
