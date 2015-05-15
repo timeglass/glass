@@ -18,6 +18,7 @@ var Build = "gobuild"
 
 var mbu = flag.Duration("mbu", time.Minute*6, "The minimal billable unit")
 var bind = flag.String("bind", ":0", "Address to bind the Daemon to")
+var force = flag.Bool("force", false, "Force start the Daemon")
 
 func main() {
 	flag.Parse()
@@ -34,7 +35,16 @@ func main() {
 	}
 
 	m := model.New(dir)
-	info := model.NewDeamon(dir, svr.Addr())
+	info, err := m.ReadDaemonInfo()
+	if err != nil {
+		log.Fatal(errwrap.Wrapf("Failed read Daemon info: {{err}}", err))
+	}
+
+	if info.Addr != "" && !*force {
+		log.Fatal("It appears another Daemon is already running or a previous instance didn't shutdown properly, use -force to force start.")
+	}
+
+	info = model.NewDeamon(dir, svr.Addr())
 	err = m.UpsertDaemonInfo(info)
 	if err != nil {
 		log.Fatal(errwrap.Wrapf("Failed write Daemon info: {{err}}", err))
