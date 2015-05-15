@@ -30,10 +30,10 @@ func main() {
 	app.Version = fmt.Sprintf("%s (%s)", Version, Build)
 
 	cmds := []Command{
-		command.NewHook(),
 		command.NewStart(),
 		command.NewPause(),
 		command.NewStop(),
+		command.NewHook(),
 	}
 
 	for _, c := range cmds {

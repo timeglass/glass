@@ -54,5 +54,6 @@ func (c *Hook) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
 	}
 
+	fmt.Println("Hooks written")
 	return nil
 }
