@@ -3,4 +3,4 @@ run-deamon:
 		./daemon/main.go \
 		./daemon/server.go \
 		./daemon/timer.go \
-		--bind :10000
+		--bind :10000 --mbu 1s
