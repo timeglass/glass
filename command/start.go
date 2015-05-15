@@ -3,7 +3,6 @@ package command
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
@@ -45,13 +44,15 @@ func (c *Start) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	m := model.New(filepath.Join(dir, "timer.db"))
-	daddr, err := m.ReadDaemonAddr()
+	m := model.New(dir)
+	d, err := m.ReadDaemonInfo()
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
 	}
 
-	fmt.Println(daddr)
+	//@todo attempt connection see if its truly up
+
+	fmt.Println(d)
 
 	return nil
 }

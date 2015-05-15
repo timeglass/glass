@@ -20,7 +20,7 @@ type Server struct {
 
 func (s *Server) stop(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Stopping Timer at: %s", s.timer.Time())
-	defer s.listener.Close()
+	defer s.Stop()
 }
 
 func (s *Server) start(c *echo.Context) *echo.HTTPError {
@@ -67,6 +67,10 @@ func NewServer(httpb string, timer *Timer) (*Server, error) {
 
 func (s *Server) Addr() string {
 	return s.listener.Addr().String()
+}
+
+func (s *Server) Stop() {
+	s.listener.Close()
 }
 
 func (s *Server) Start() error {
