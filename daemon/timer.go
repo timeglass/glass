@@ -1,6 +1,7 @@
 package main
 
 import (
+	"sync"
 	"time"
 )
 
@@ -8,9 +9,10 @@ type Timer struct {
 	mbu     time.Duration
 	time    time.Duration
 	ticking bool
+	read    chan chan time.Duration
+	inc     chan chan time.Duration
 
-	read chan chan time.Duration
-	inc  chan chan time.Duration
+	*sync.Mutex
 }
 
 func NewTimer(mbu time.Duration) *Timer {
@@ -18,6 +20,8 @@ func NewTimer(mbu time.Duration) *Timer {
 		mbu:  mbu,
 		read: make(chan chan time.Duration),
 		inc:  make(chan chan time.Duration),
+
+		Mutex: &sync.Mutex{},
 	}
 
 	//handle read& increments
@@ -42,15 +46,20 @@ func (t *Timer) Time() time.Duration {
 }
 
 func (t *Timer) Stop() {
+	t.Lock()
+	defer t.Unlock()
 	t.ticking = false
 }
 
 func (t *Timer) Start() {
+	t.Lock()
 	if t.ticking {
 		return
 	}
 
 	t.ticking = true
+	t.Unlock()
+
 	go func() {
 		for {
 
