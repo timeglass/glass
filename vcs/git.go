@@ -1,9 +1,23 @@
 package vcs
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
+	"text/template"
+
+	"github.com/hashicorp/errwrap"
 )
+
+var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+
+echo checkout!
+`))
+
+var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+
+echo commit!
+`))
 
 type Git struct {
 	dir string
@@ -11,13 +25,13 @@ type Git struct {
 
 func NewGit(dir string) *Git {
 	return &Git{
-		dir: dir,
+		dir: filepath.Join(dir, ".git"),
 	}
 }
 
 func (g *Git) Name() string { return "git" }
 func (g *Git) Supported() bool {
-	fi, err := os.Stat(filepath.Join(g.dir, ".git"))
+	fi, err := os.Stat(g.dir)
 	if err != nil || !fi.IsDir() {
 		return false
 	}
@@ -25,20 +39,28 @@ func (g *Git) Supported() bool {
 	return true
 }
 
-//@todo implement
-func (g *Git) Install() error {
+func (g *Git) WriteHooks() error {
+	hpath := filepath.Join(g.dir, "hooks")
 
-	//parse templates
+	postchf, err := os.Create(filepath.Join(hpath, "post-checkout"))
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout in '%s': {{err}}", hpath), err)
+	}
 
-	//write files
+	err = PostCheckoutTmpl.Execute(postchf, struct{}{})
+	if err != nil {
+		return errwrap.Wrapf("Failed to run post-checkout template: {{err}}", err)
+	}
 
-	return nil
-}
+	postcof, err := os.Create(filepath.Join(hpath, "post-commit"))
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit in '%s': {{err}}", hpath), err)
+	}
 
-//@todo implement
-func (g *Git) Uninstall() error {
-
-	//remove files
+	err = PostCheckoutTmpl.Execute(postcof, struct{}{})
+	if err != nil {
+		return errwrap.Wrapf("Failed to run post-commit template: {{err}}", err)
+	}
 
 	return nil
 }

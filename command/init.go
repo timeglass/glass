@@ -49,6 +49,11 @@ func (c *Init) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
+	err = vcs.WriteHooks()
+	if err != nil {
+		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
+	}
+
 	_ = vcs
 	//@todo init hooks
 
