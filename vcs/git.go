@@ -11,12 +11,15 @@ import (
 
 var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 
+#args:
+#Ref of the previous HEAD, ref of the new HEAD, flag indicating whether it was a branch checkout 
+
 echo checkout!
 `))
 
-var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 
-echo commit!
+echo " +test" >> "$1"
 `))
 
 type Git struct {
@@ -57,17 +60,17 @@ func (g *Git) Hook() error {
 		return errwrap.Wrapf("Failed to run post-checkout template: {{err}}", err)
 	}
 
-	postcof, err := os.Create(filepath.Join(hpath, "post-commit"))
+	prepcof, err := os.Create(filepath.Join(hpath, "prepare-commit-msg"))
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit  '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = postcof.Chmod(0766)
+	err = prepcof.Chmod(0766)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-commit file '%s' executable: {{err}}", hpath), err)
 	}
 
-	err = PostCommitTmpl.Execute(postcof, struct{}{})
+	err = PrepCommitTmpl.Execute(prepcof, struct{}{})
 	if err != nil {
 		return errwrap.Wrapf("Failed to run post-commit template: {{err}}", err)
 	}
