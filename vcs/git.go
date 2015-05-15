@@ -19,7 +19,8 @@ echo checkout!
 
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 
-echo " +test" >> "$1"
+# this adds another line to every commit message
+# echo " +test" >> "$1"
 `))
 
 type Git struct {
