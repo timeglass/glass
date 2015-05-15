@@ -44,7 +44,12 @@ func (g *Git) Hook() error {
 
 	postchf, err := os.Create(filepath.Join(hpath, "post-checkout"))
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout in '%s': {{err}}", hpath), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout '%s': {{err}}", postchf.Name()), err)
+	}
+
+	err = postchf.Chmod(0766)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-checkout file '%s' executable: {{err}}", hpath), err)
 	}
 
 	err = PostCheckoutTmpl.Execute(postchf, struct{}{})
@@ -54,7 +59,12 @@ func (g *Git) Hook() error {
 
 	postcof, err := os.Create(filepath.Join(hpath, "post-commit"))
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit in '%s': {{err}}", hpath), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit  '%s': {{err}}", postchf.Name()), err)
+	}
+
+	err = postcof.Chmod(0766)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-commit file '%s' executable: {{err}}", hpath), err)
 	}
 
 	err = PostCheckoutTmpl.Execute(postcof, struct{}{})
