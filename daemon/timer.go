@@ -1,7 +1,6 @@
 package main
 
 import (
-	"sync"
 	"time"
 )
 
@@ -9,31 +8,51 @@ type Timer struct {
 	mbu  time.Duration
 	time time.Duration
 
-	*sync.Mutex
+	read chan chan time.Duration
+	inc  chan chan time.Duration
 }
 
 func NewTimer(mbu time.Duration) *Timer {
-	return &Timer{
-		mbu:   mbu,
-		Mutex: &sync.Mutex{},
+	t := &Timer{
+		mbu:  mbu,
+		read: make(chan chan time.Duration),
+		inc:  make(chan chan time.Duration),
 	}
+
+	//handle read/writes
+	go func() {
+		for {
+			select {
+			case r := <-t.read:
+				r <- t.time
+			case i := <-t.inc:
+				t.time += <-i
+			}
+		}
+	}()
+
+	return t
 }
 
 func (t *Timer) Time() time.Duration {
-	t.Lock()
-	defer t.Unlock()
-	return t.time
+	r := make(chan time.Duration)
+	t.read <- r
+	return <-r
+}
+
+func (t *Timer) Stop() error {
+
+	return nil
 }
 
 func (t *Timer) Start() error {
 	go func() {
 		for {
 
-			//reserve at least one mbu
-			//upon starting
-			t.Lock()
-			t.time += t.mbu
-			t.Unlock()
+			//start with increment
+			i := make(chan time.Duration)
+			t.inc <- i
+			i <- t.mbu
 
 			<-time.After(t.mbu)
 		}
