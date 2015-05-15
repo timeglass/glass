@@ -2,6 +2,10 @@ run-deamon:
 	go build -o $(GOPATH)/bin/sourceclock-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./daemon/... 
 	sourceclock --bind :10000 --mbu 1s
 
+run-cli-init:
+	go run -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" \
+		./main.go init
+
 run-cli-start:
 	go run -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" \
 		./main.go start
