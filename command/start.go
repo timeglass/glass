@@ -2,7 +2,10 @@ package command
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
@@ -50,9 +53,18 @@ func (c *Start) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
 	}
 
-	//@todo attempt connection see if its truly up
+	to := time.Duration(100 * time.Millisecond)
+	client := http.Client{
+		Timeout: to,
+	}
 
-	fmt.Println(d)
+	resp, err := client.Get(fmt.Sprintf("http://%s/timer.start", d.Addr))
+	if err != nil {
+		//@todo start hook script, it doesn't appear to be running
+		log.Fatal(err)
+	} else if resp.StatusCode != 200 {
+		log.Fatalf("Unexpected StatusCode from Deamon: '%d'", resp.StatusCode)
+	}
 
 	return nil
 }
