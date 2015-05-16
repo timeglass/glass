@@ -9,3 +9,6 @@ run-daemon: build-daemon
 
 run-cli: build-cli
 	sourceclock
+
+run-cli-start: build-cli
+	sourceclock start
