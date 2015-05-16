@@ -96,7 +96,7 @@ func (g *Git) Hook() error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-commit file '%s' executable: {{err}}", hpath), err)
 	}
 
-	err = PrepCommitTmpl.Execute(postcof, struct{}{})
+	err = PostCommitTmpl.Execute(postcof, struct{}{})
 	if err != nil {
 		return errwrap.Wrapf("Failed to run post-commit template: {{err}}", err)
 	}
