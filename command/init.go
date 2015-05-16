@@ -27,7 +27,7 @@ func (c *Init) Description() string {
 }
 
 func (c *Init) Usage() string {
-	return "<usage>"
+	return "Install Timeglass for the current repository"
 }
 
 func (c *Init) Flags() []cli.Flag {

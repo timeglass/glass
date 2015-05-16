@@ -27,7 +27,7 @@ func (c *Status) Description() string {
 }
 
 func (c *Status) Usage() string {
-	return "<usage>"
+	return "Show info on the running timer"
 }
 
 func (c *Status) Flags() []cli.Flag {

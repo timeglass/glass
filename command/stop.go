@@ -27,7 +27,7 @@ func (c *Stop) Description() string {
 }
 
 func (c *Stop) Usage() string {
-	return "<usage>"
+	return "Stop the timer completely"
 }
 
 func (c *Stop) Flags() []cli.Flag {

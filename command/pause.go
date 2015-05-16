@@ -27,7 +27,7 @@ func (c *Pause) Description() string {
 }
 
 func (c *Pause) Usage() string {
-	return "<usage>"
+	return "Manually Pause the timer, go get some coffee"
 }
 
 func (c *Pause) Flags() []cli.Flag {

@@ -28,7 +28,7 @@ func (c *Start) Description() string {
 }
 
 func (c *Start) Usage() string {
-	return "<usage>"
+	return "Manually start the timer for the current repository"
 }
 
 func (c *Start) Flags() []cli.Flag {

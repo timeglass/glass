@@ -25,8 +25,8 @@ func main() {
 	app := cli.NewApp()
 	app.Author = "Ad van der Veer"
 	app.Email = "advanderveer@gmail.com"
-	app.Name = "<name>"
-	app.Usage = "<usage>"
+	app.Name = "Timeglass"
+	app.Usage = "Automated time tracking for code repositories"
 	app.Version = fmt.Sprintf("%s (%s)", Version, Build)
 
 	cmds := []Command{

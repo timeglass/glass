@@ -27,7 +27,7 @@ func (c *Lap) Description() string {
 }
 
 func (c *Lap) Usage() string {
-	return "<usage>"
+	return "Show the measured time and reset the timer to 0s"
 }
 
 func (c *Lap) Flags() []cli.Flag {
