@@ -37,6 +37,7 @@ __Currently Supported: (see roadmap)__
 4. Edit some files, get a coffee, and commit in order to register the time you spent:
 
   ```sh
+  git add -A
   git commit -m "time flies when you're having fun"
   ```
 
