@@ -10,9 +10,10 @@ import (
 )
 
 var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-# @todo handle checkout files endge case
-
-sourceclock start
+# when checkout is a branch, start timer
+if [ $3 -eq 1 ]; then
+   sourceclock start;
+fi
 `))
 
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
