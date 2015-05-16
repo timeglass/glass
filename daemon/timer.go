@@ -61,15 +61,12 @@ func (t *Timer) Stop() {
 
 func (t *Timer) Start() {
 	t.Lock()
+	defer t.Unlock()
 	if t.ticking {
-		t.Unlock()
-		t.Reset()
 		return
 	}
 
 	t.ticking = true
-	t.Unlock()
-
 	go func() {
 		for {
 
