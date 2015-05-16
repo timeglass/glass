@@ -89,6 +89,11 @@ func (t *Timer) Start() {
 	go func() {
 		for {
 
+			//increment with mbu
+			i := make(chan time.Duration)
+			t.inc <- i
+			i <- t.mbu
+
 			//wait for next mbu to arrive
 			<-time.After(t.mbu)
 
@@ -97,11 +102,6 @@ func (t *Timer) Start() {
 			if !t.ticking {
 				return
 			}
-
-			//increment with mbu
-			i := make(chan time.Duration)
-			t.inc <- i
-			i <- t.mbu
 
 		}
 	}()
