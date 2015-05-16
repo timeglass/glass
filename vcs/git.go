@@ -10,16 +10,11 @@ import (
 )
 
 var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-
-#args:
-#Ref of the previous HEAD, ref of the new HEAD, flag indicating whether it was a branch checkout 
-# $PWD will contain current repo dir
-
 sourceclock start
 `))
 
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-echo "[$(sourceclock split)]" >> "$1"
+printf "[$(sourceclock split)]" >> "$1"
 `))
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
