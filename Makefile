@@ -3,6 +3,9 @@ build-hook: build-daemon build-cli
 
 build: build-daemon build-cli
 
+test:
+	go test ./...
+
 build-daemon:
 	go build -o $(GOPATH)/bin/sourceclock-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./daemon 
 
@@ -20,3 +23,4 @@ run-cli-start: build-cli
 
 run-cli-split: build-cli
 	sourceclock split
+

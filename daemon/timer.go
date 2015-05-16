@@ -3,6 +3,8 @@ package main
 import (
 	"sync"
 	"time"
+
+	"github.com/advanderveer/timer/daemon/watching"
 )
 
 type Timer struct {
@@ -14,7 +16,7 @@ type Timer struct {
 	inc     chan chan time.Duration
 	reset   chan struct{}
 
-	Wakeup <-chan interface{}
+	Wakeup <-chan watching.DirEvent
 	*sync.Mutex
 }
 
@@ -27,7 +29,7 @@ func NewTimer(mbu time.Duration, to time.Duration) *Timer {
 		inc:   make(chan chan time.Duration),
 		reset: make(chan struct{}),
 
-		Wakeup: make(chan interface{}),
+		Wakeup: make(chan watching.DirEvent),
 		Mutex:  &sync.Mutex{},
 	}
 
@@ -52,6 +54,7 @@ func NewTimer(mbu time.Duration, to time.Duration) *Timer {
 			case <-time.After(t.timeout):
 				t.Stop()
 			case <-t.Wakeup:
+				t.Start()
 			}
 		}
 	}()

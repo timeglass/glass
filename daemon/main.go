@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/hashicorp/errwrap"
 
+	"github.com/advanderveer/timer/daemon/watching"
 	"github.com/advanderveer/timer/model"
 )
 
@@ -24,6 +26,7 @@ func main() {
 	flag.Parse()
 
 	//by default timeout is four times the mbu
+	//@todo make configurable
 	timer := NewTimer(*mbu, 4*(*mbu))
 	svr, err := NewServer(*bind, timer)
 	if err != nil {
@@ -33,6 +36,24 @@ func main() {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err))
+	}
+
+	monitor, err := watching.NewMonitor(dir)
+	if err != nil {
+		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}"), err))
+	}
+
+	//whenever _something_ happends in any directory of the project delay timeout
+	timer.Wakeup = monitor.Events()
+	go func() {
+		for err := range monitor.Errors() {
+			log.Printf("Monitor Error: %s", err)
+		}
+	}()
+
+	err = monitor.Start()
+	if err != nil {
+		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to start monitor for directory '%s': {{err}}"), err))
 	}
 
 	m := model.New(dir)
