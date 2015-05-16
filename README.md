@@ -1,4 +1,4 @@
-# Timeglass }{
+# Timeglass
 Fully Automated Time Tracking for Git Repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in Go and comes with just a minimal command line interface. 
 
 __Features:__
