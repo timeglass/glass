@@ -26,6 +26,10 @@ var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 echo "[$(sourceclock split)]" >> "$1"
 `))
 
+var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+sourceclock lap
+`))
+
 type Git struct {
 	dir string
 }
@@ -49,6 +53,7 @@ func (g *Git) Supported() bool {
 func (g *Git) Hook() error {
 	hpath := filepath.Join(g.dir, "hooks")
 
+	//post checkout: start()
 	postchf, err := os.Create(filepath.Join(hpath, "post-checkout"))
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout '%s': {{err}}", postchf.Name()), err)
@@ -64,17 +69,34 @@ func (g *Git) Hook() error {
 		return errwrap.Wrapf("Failed to run post-checkout template: {{err}}", err)
 	}
 
+	//prepare commit msg: split()
 	prepcof, err := os.Create(filepath.Join(hpath, "prepare-commit-msg"))
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create prepare-commit-msg  '%s': {{err}}", postchf.Name()), err)
 	}
 
 	err = prepcof.Chmod(0766)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-commit file '%s' executable: {{err}}", hpath), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to make prepare-commit-msg file '%s' executable: {{err}}", hpath), err)
 	}
 
 	err = PrepCommitTmpl.Execute(prepcof, struct{}{})
+	if err != nil {
+		return errwrap.Wrapf("Failed to run post-commit template: {{err}}", err)
+	}
+
+	//post commit: lap()
+	postcof, err := os.Create(filepath.Join(hpath, "post-commit"))
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit  '%s': {{err}}", postchf.Name()), err)
+	}
+
+	err = postcof.Chmod(0766)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-commit file '%s' executable: {{err}}", hpath), err)
+	}
+
+	err = PrepCommitTmpl.Execute(postcof, struct{}{})
 	if err != nil {
 		return errwrap.Wrapf("Failed to run post-commit template: {{err}}", err)
 	}
