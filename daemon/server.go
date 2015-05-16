@@ -34,7 +34,9 @@ func (s *Server) pause(c *echo.Context) *echo.HTTPError {
 }
 
 func (s *Server) status(c *echo.Context) *echo.HTTPError {
-	return c.String(http.StatusOK, fmt.Sprintf("Timer: %s", s.timer.Time()))
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"Time": s.timer.Time().String(),
+	})
 }
 
 func version(c *echo.Context) *echo.HTTPError {

@@ -3,7 +3,6 @@ package command
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
@@ -11,35 +10,35 @@ import (
 	"github.com/advanderveer/timer/model"
 )
 
-type Start struct {
+type Split struct {
 	*command
 }
 
-func NewStart() *Start {
-	return &Start{newCommand()}
+func NewSplit() *Split {
+	return &Split{newCommand()}
 }
 
-func (c *Start) Name() string {
-	return "start"
+func (c *Split) Name() string {
+	return "split"
 }
 
-func (c *Start) Description() string {
+func (c *Split) Description() string {
 	return fmt.Sprintf("<description>")
 }
 
-func (c *Start) Usage() string {
+func (c *Split) Usage() string {
 	return "<usage>"
 }
 
-func (c *Start) Flags() []cli.Flag {
+func (c *Split) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
-func (c *Start) Action() func(ctx *cli.Context) {
+func (c *Split) Action() func(ctx *cli.Context) {
 	return c.command.Action(c.Run)
 }
 
-func (c *Start) Run(ctx *cli.Context) error {
+func (c *Split) Run(ctx *cli.Context) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
@@ -52,19 +51,15 @@ func (c *Start) Run(ctx *cli.Context) error {
 	}
 
 	client := NewClient(info)
-	err = client.Call("timer.start")
+	t, err := client.Split()
 	if err != nil {
-		if err != ErrDaemonDown {
+		if err == ErrDaemonDown {
+			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
+		} else {
 			return err
-		}
-
-		cmd := exec.Command("sourceclock-daemon", "-mbu=1s")
-		err := cmd.Start()
-		if err != nil {
-			return errwrap.Wrapf(fmt.Sprintf("Failed to start Daemon: {{err}}"), err)
 		}
 	}
 
-	fmt.Println("Timer started")
+	fmt.Println(t)
 	return nil
 }
