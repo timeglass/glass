@@ -14,7 +14,7 @@ sourceclock start
 `))
 
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-printf "[$(sourceclock split)]" >> "$1"
+printf "$(cat $1)[$(sourceclock split)]" > "$1"
 `))
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
