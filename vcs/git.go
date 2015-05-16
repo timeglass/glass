@@ -21,7 +21,7 @@ var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # only add time to template and message sources
 # @see http://git-scm.com/docs/githooks#_prepare_commit_msg
 case "$2" in
-template,message) echo normal 
+message) echo normal 
 	printf "$(cat $1) [$(sourceclock split)]" > "$1" ;;
 esac
 
