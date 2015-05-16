@@ -1,3 +1,6 @@
+build-hook: build-daemon build-cli
+	sourceclock hook
+
 build: build-daemon build-cli
 
 build-daemon:
