@@ -11,20 +11,22 @@ type Timer struct {
 	ticking bool
 	read    chan chan time.Duration
 	inc     chan chan time.Duration
+	reset   chan struct{}
 
 	*sync.Mutex
 }
 
 func NewTimer(mbu time.Duration) *Timer {
 	t := &Timer{
-		mbu:  mbu,
-		read: make(chan chan time.Duration),
-		inc:  make(chan chan time.Duration),
+		mbu:   mbu,
+		read:  make(chan chan time.Duration),
+		inc:   make(chan chan time.Duration),
+		reset: make(chan struct{}),
 
 		Mutex: &sync.Mutex{},
 	}
 
-	//handle read& increments
+	//handle read& writes
 	go func() {
 		for {
 			select {
@@ -32,6 +34,8 @@ func NewTimer(mbu time.Duration) *Timer {
 				r <- t.time
 			case i := <-t.inc:
 				t.time += <-i
+			case <-t.reset:
+				t.time = 0
 			}
 		}
 	}()
@@ -45,6 +49,10 @@ func (t *Timer) Time() time.Duration {
 	return <-r
 }
 
+func (t *Timer) Reset() {
+	t.reset <- struct{}{}
+}
+
 func (t *Timer) Stop() {
 	t.Lock()
 	defer t.Unlock()
@@ -55,6 +63,7 @@ func (t *Timer) Start() {
 	t.Lock()
 	if t.ticking {
 		t.Unlock()
+		t.Reset()
 		return
 	}
 
