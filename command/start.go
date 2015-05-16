@@ -24,11 +24,11 @@ func (c *Start) Name() string {
 }
 
 func (c *Start) Description() string {
-	return fmt.Sprintf("<description>")
+	return fmt.Sprintf("Starts the daemon that is reposible for tracking time for the current repository, if the daemon is already running this operations is a no-op.")
 }
 
 func (c *Start) Usage() string {
-	return "<usage>"
+	return "Manually start timer for the current repository"
 }
 
 func (c *Start) Flags() []cli.Flag {
@@ -58,13 +58,13 @@ func (c *Start) Run(ctx *cli.Context) error {
 			return err
 		}
 
-		cmd := exec.Command("glass-daemon", "-mbu=10s")
+		cmd := exec.Command("glass-daemon")
 		err := cmd.Start()
 		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to start Daemon: {{err}}"), err)
 		}
 	}
 
-	fmt.Println("Timer started")
+	fmt.Println("Timeglass: timer started")
 	return nil
 }

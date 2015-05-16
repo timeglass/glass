@@ -23,11 +23,11 @@ func (c *Stop) Name() string {
 }
 
 func (c *Stop) Description() string {
-	return fmt.Sprintf("<description>")
+	return fmt.Sprintf("Terminates the timer process gracefully, it no timer is running it returns an error.")
 }
 
 func (c *Stop) Usage() string {
-	return "<usage>"
+	return "Stop the timer completely"
 }
 
 func (c *Stop) Flags() []cli.Flag {
@@ -60,6 +60,6 @@ func (c *Stop) Run(ctx *cli.Context) error {
 		}
 	}
 
-	fmt.Println("Timer Stopped")
+	fmt.Println("Timeglass: timer started")
 	return nil
 }

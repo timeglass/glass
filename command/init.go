@@ -10,35 +10,35 @@ import (
 	"github.com/timeglass/glass/vcs"
 )
 
-type Hook struct {
+type Init struct {
 	*command
 }
 
-func NewHook() *Hook {
-	return &Hook{newCommand()}
+func NewInit() *Init {
+	return &Init{newCommand()}
 }
 
-func (c *Hook) Name() string {
-	return "hook"
+func (c *Init) Name() string {
+	return "init"
 }
 
-func (c *Hook) Description() string {
-	return fmt.Sprintf("<description>")
+func (c *Init) Description() string {
+	return fmt.Sprintf("Install hooks for the current repository, if hooks already exists they are truncated and rewritten.")
 }
 
-func (c *Hook) Usage() string {
-	return "<usage>"
+func (c *Init) Usage() string {
+	return "Install Timeglass for the current repository"
 }
 
-func (c *Hook) Flags() []cli.Flag {
+func (c *Init) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
-func (c *Hook) Action() func(ctx *cli.Context) {
+func (c *Init) Action() func(ctx *cli.Context) {
 	return c.command.Action(c.Run)
 }
 
-func (c *Hook) Run(ctx *cli.Context) error {
+func (c *Init) Run(ctx *cli.Context) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
@@ -54,6 +54,6 @@ func (c *Hook) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
 	}
 
-	fmt.Println("Hooks written")
+	fmt.Println("Timeglass: hooks written")
 	return nil
 }
