@@ -10,35 +10,35 @@ import (
 	"github.com/timeglass/glass/model"
 )
 
-type Split struct {
+type Status struct {
 	*command
 }
 
-func NewSplit() *Split {
-	return &Split{newCommand()}
+func NewStatus() *Status {
+	return &Status{newCommand()}
 }
 
-func (c *Split) Name() string {
-	return "split"
+func (c *Status) Name() string {
+	return "status"
 }
 
-func (c *Split) Description() string {
+func (c *Status) Description() string {
 	return fmt.Sprintf("<description>")
 }
 
-func (c *Split) Usage() string {
+func (c *Status) Usage() string {
 	return "<usage>"
 }
 
-func (c *Split) Flags() []cli.Flag {
+func (c *Status) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
-func (c *Split) Action() func(ctx *cli.Context) {
+func (c *Status) Action() func(ctx *cli.Context) {
 	return c.command.Action(c.Run)
 }
 
-func (c *Split) Run(ctx *cli.Context) error {
+func (c *Status) Run(ctx *cli.Context) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)

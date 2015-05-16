@@ -30,12 +30,12 @@ func main() {
 	app.Version = fmt.Sprintf("%s (%s)", Version, Build)
 
 	cmds := []Command{
+		command.NewInit(),
 		command.NewStart(),
-		command.NewSplit(),
-		command.NewLap(),
 		command.NewPause(),
+		command.NewStatus(),
+		command.NewLap(),
 		command.NewStop(),
-		command.NewHook(),
 	}
 
 	for _, c := range cmds {

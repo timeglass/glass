@@ -21,7 +21,7 @@ var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # @see http://git-scm.com/docs/githooks#_prepare_commit_msg
 case "$2" in
 message|template) 
-	printf "$(cat $1) [$(glass split)]" > "$1" ;;
+	printf "$(cat $1) [$(glass status)]" > "$1" ;;
 esac
 `))
 
@@ -69,7 +69,7 @@ func (g *Git) Hook() error {
 		return errwrap.Wrapf("Failed to run post-checkout template: {{err}}", err)
 	}
 
-	//prepare commit msg: split()
+	//prepare commit msg: status()
 	prepcof, err := os.Create(filepath.Join(hpath, "prepare-commit-msg"))
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create prepare-commit-msg  '%s': {{err}}", postchf.Name()), err)

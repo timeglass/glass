@@ -1,5 +1,5 @@
 build-hook: build-daemon build-cli
-	glass hook
+	glass init
 
 build: build-daemon build-cli
 
@@ -21,6 +21,6 @@ run-cli: build-cli
 run-cli-start: build-cli
 	glass start
 
-run-cli-split: build-cli
-	glass split
+run-cli-status: build-cli
+	glass status
 
