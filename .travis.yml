@@ -1,4 +1,10 @@
 language: go
 go:
     - tip
+install:
+    - go get github.com/boltdb/bolt
+    - go get github.com/codegangsta/cli
+    - go get github.com/hashicorp/errwrap
+    - go get github.com/fsnotify/fsnotify
+    - go get github.com/labstack/echo
 script: go test -v ./...
