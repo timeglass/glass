@@ -1,5 +1,5 @@
-# Timeglass
-Fully Automated Time Tracking for Git Repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop tracking ever again. It is written in Go and comes with just a minimal command line interface. 
+# Timeglass }{
+Fully Automated Time Tracking for Git Repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in Go and comes with just a minimal command line interface. 
 
 __Features:__
 
@@ -9,12 +9,14 @@ __Features:__
 - Time is incremented by a "minimal billable unit" (MBU). 
 - No internet or account required and completely free& open source
 
-__Supported:__
+__Currently Supported (see roadmap):__
 
-- Platforms: __OSX__ (see roadmap below)   
-- Version Control: __Git__ (see roadmap below)  
+- Platforms: __OSX__
+- Version Control: __Git__
 
 ## Getting Started
+*coming soon*
+
 
 ## Roadmap, input welcome!
 
