@@ -54,6 +54,6 @@ func (c *Init) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
 	}
 
-	fmt.Println("Hooks created")
+	fmt.Println("Timeglass: hooks written")
 	return nil
 }
