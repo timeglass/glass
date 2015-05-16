@@ -33,6 +33,13 @@ func (s *Server) pause(c *echo.Context) *echo.HTTPError {
 	return c.String(http.StatusOK, fmt.Sprintf("Stopped at: %s", s.timer.Time()))
 }
 
+func (s *Server) lap(c *echo.Context) *echo.HTTPError {
+	defer s.timer.Reset()
+	return c.JSON(http.StatusOK, map[string]interface{}{
+		"Time": s.timer.Time().String(),
+	})
+}
+
 func (s *Server) status(c *echo.Context) *echo.HTTPError {
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"Time": s.timer.Time().String(),
@@ -61,6 +68,7 @@ func NewServer(httpb string, timer *Timer) (*Server, error) {
 	router.Get("/", version)
 	router.Get("/timer.status", s.status)
 	router.Get("/timer.pause", s.pause)
+	router.Get("/timer.lap", s.lap)
 	router.Get("/timer.start", s.start)
 	router.Get("/timer.stop", s.stop)
 
