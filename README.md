@@ -6,7 +6,7 @@ __Features:__
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout`
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
 - The time you spent is automatically added to the next `git commit` message
-- Time is incremented by a "minimal billable unit" (MBU). 
+- Time is incremented by a "minimal billable unit" (MBU), one minute by default. 
 - No internet or account required and completely free& open source
 
 __Currently Supported (see roadmap):__

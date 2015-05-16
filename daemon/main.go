@@ -18,7 +18,7 @@ import (
 var Version = "0.0.0"
 var Build = "gobuild"
 
-var mbu = flag.Duration("mbu", time.Second*10, "The minimal billable unit")
+var mbu = flag.Duration("mbu", time.Minute, "The minimal billable unit")
 var bind = flag.String("bind", ":0", "Address to bind the Daemon to")
 var force = flag.Bool("force", false, "Force start the Daemon")
 
