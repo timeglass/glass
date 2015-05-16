@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/errwrap"
 
-	"github.com/advanderveer/timer/daemon/watching"
-	"github.com/advanderveer/timer/model"
+	"github.com/timeglass/glass/daemon/watching"
+	"github.com/timeglass/glass/model"
 )
 
 var Version = "0.0.0"

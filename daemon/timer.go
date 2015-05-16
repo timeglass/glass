@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/advanderveer/timer/daemon/watching"
+	"github.com/timeglass/glass/daemon/watching"
 )
 
 type Timer struct {

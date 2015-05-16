@@ -8,7 +8,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
 
-	"github.com/advanderveer/timer/model"
+	"github.com/timeglass/glass/model"
 )
 
 type Start struct {
@@ -58,7 +58,7 @@ func (c *Start) Run(ctx *cli.Context) error {
 			return err
 		}
 
-		cmd := exec.Command("sourceclock-daemon", "-mbu=10s")
+		cmd := exec.Command("glass-daemon", "-mbu=10s")
 		err := cmd.Start()
 		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to start Daemon: {{err}}"), err)

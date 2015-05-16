@@ -9,7 +9,7 @@ import (
 
 	"github.com/hashicorp/errwrap"
 
-	"github.com/advanderveer/timer/model"
+	"github.com/timeglass/glass/model"
 )
 
 var ErrDaemonDown = errors.New("Daemon doesn't appears to be running.")

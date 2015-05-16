@@ -7,7 +7,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
 
-	"github.com/advanderveer/timer/model"
+	"github.com/timeglass/glass/model"
 )
 
 type Lap struct {

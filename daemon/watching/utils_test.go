@@ -10,7 +10,7 @@ import (
 )
 
 func TempDir(t *testing.T) (string, func()) {
-	path, err := ioutil.TempDir("", fmt.Sprint("sourceclock"))
+	path, err := ioutil.TempDir("", fmt.Sprint("timeglass"))
 	path, _ = filepath.EvalSymlinks(path)
 	if err != nil {
 		t.Error(err)

@@ -12,7 +12,7 @@ import (
 var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # when checkout is a branch, start timer
 if [ $3 -eq 1 ]; then
-   sourceclock start;
+   glass start;
 fi
 `))
 
@@ -21,13 +21,13 @@ var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # @see http://git-scm.com/docs/githooks#_prepare_commit_msg
 case "$2" in
 message|template) 
-	printf "$(cat $1) [$(sourceclock split)]" > "$1" ;;
+	printf "$(cat $1) [$(glass split)]" > "$1" ;;
 esac
 `))
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #always reset after commit
-sourceclock lap
+glass lap
 `))
 
 type Git struct {

@@ -6,7 +6,7 @@ import (
 
 	"github.com/codegangsta/cli"
 
-	"github.com/advanderveer/timer/command"
+	"github.com/timeglass/glass/command"
 )
 
 type Command interface {

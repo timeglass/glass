@@ -32,7 +32,7 @@ func (m *Model) Open() (*bolt.DB, error) {
 		return nil, errwrap.Wrapf("Failed to detect current user for opening database: {{err}}", err)
 	}
 
-	dbdir := filepath.Join(u.HomeDir, ".sourceclock")
+	dbdir := filepath.Join(u.HomeDir, ".timeglass")
 	err = os.MkdirAll(dbdir, 0777)
 	if err != nil {
 		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to create directory '%s' for opening database: {{err}}", dbdir), err)

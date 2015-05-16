@@ -7,7 +7,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
 
-	"github.com/advanderveer/timer/vcs"
+	"github.com/timeglass/glass/vcs"
 )
 
 type Hook struct {
