@@ -60,6 +60,6 @@ func (c *Pause) Run(ctx *cli.Context) error {
 		}
 	}
 
-	fmt.Println("Timeglass: timer started")
+	fmt.Println("Timeglass: timer paused")
 	return nil
 }
