@@ -2,14 +2,14 @@
 
 ![Timeglass Screenshot](/../assets/docs/screenshot.png?raw=true "Timeglass Screenshot")
 
-Fully automated time Tracking for Git Repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in [Go](http://golang.org/) and runs 100% on your own workstation: no internet or account registration required. 
+Fully automated time tracking for Git repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in [Go](http://golang.org/) and runs 100% on your own workstation: no internet or account registration required. 
 
 __Features:__
 
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout`
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
 - The time you spent is automatically added to the next `git commit` message
-- The timer incremented in steps: the _minimal billable unit_ (mbu), by default this is 1m. 
+- The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1m. 
 
 __Currently Supported: (see roadmap)__
 
@@ -17,7 +17,34 @@ __Currently Supported: (see roadmap)__
 - Version Control: __Git__
 
 ## Getting Started
-*coming soon*
+1. Download the [latest release](https://github.com/timeglass/glass/releases/latest) for your platform and unzip the contents into a directory that is in your systems PATH (e.g /usr/local/bin)
+
+2. Use your terminal to navigate to the repository that contains the project you would like to track and install the hooks:
+
+ ```sh
+ cd ~/my-git-project
+ glass init
+ ```
+ 
+ _NOTE: you'll only have to run this once per clone_
+
+3. Start the timer by creating a new branch: 
+
+  ```sh
+  git checkout -b "testing_timeglass"
+  ```
+  
+4. Edit some files, get a coffee, and commit in order to register the time you spent:
+
+  ```sh
+  git commit -m "time flies when you're having fun"
+  ```
+
+5. Verify that the time was indeed registered correctly by looking at your commit log:
+
+  ```sh
+  git log -n 1
+  ```
 
 
 ## Roadmap, input welcome!
