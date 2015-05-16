@@ -19,10 +19,6 @@ sourceclock start
 `))
 
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-
-# this adds another line to every commit message
-# echo " +test" >> "$1"
-
 echo "[$(sourceclock split)]" >> "$1"
 `))
 
