@@ -17,19 +17,16 @@ fi
 `))
 
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-
 # only add time to template and message sources
 # @see http://git-scm.com/docs/githooks#_prepare_commit_msg
 case "$2" in
-message|template) echo normal 
+message|template) 
 	printf "$(cat $1) [$(sourceclock split)]" > "$1" ;;
 esac
-
 `))
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-# @todo handle merge/rebase kind of commits
-
+#always reset after commit
 sourceclock lap
 `))
 
