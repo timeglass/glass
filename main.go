@@ -32,6 +32,7 @@ func main() {
 	cmds := []Command{
 		command.NewStart(),
 		command.NewSplit(),
+		command.NewLap(),
 		command.NewPause(),
 		command.NewStop(),
 		command.NewHook(),
