@@ -23,7 +23,8 @@ var force = flag.Bool("force", false, "Force start the Daemon")
 func main() {
 	flag.Parse()
 
-	timer := NewTimer(*mbu)
+	//by default timeout is four times the mbu
+	timer := NewTimer(*mbu, 4*(*mbu))
 	svr, err := NewServer(*bind, timer)
 	if err != nil {
 		log.Fatal(err)

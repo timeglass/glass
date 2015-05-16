@@ -4,7 +4,7 @@ build-hook: build-daemon build-cli
 build: build-daemon build-cli
 
 build-daemon:
-	go build -o $(GOPATH)/bin/sourceclock-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./daemon/... 
+	go build -o $(GOPATH)/bin/sourceclock-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./daemon 
 
 build-cli:
 	go build -o $(GOPATH)/bin/sourceclock -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" .
