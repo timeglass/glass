@@ -23,7 +23,7 @@ var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # this adds another line to every commit message
 # echo " +test" >> "$1"
 
-sourceclock lap
+echo -n [$(sourceclock lap)] >> "$1"
 `))
 
 type Git struct {
