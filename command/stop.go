@@ -23,7 +23,7 @@ func (c *Stop) Name() string {
 }
 
 func (c *Stop) Description() string {
-	return fmt.Sprintf("<description>")
+	return fmt.Sprintf("Terminates the timer process gracefully, it no timer is running it returns an error.")
 }
 
 func (c *Stop) Usage() string {

@@ -23,7 +23,7 @@ func (c *Status) Name() string {
 }
 
 func (c *Status) Description() string {
-	return fmt.Sprintf("<description>")
+	return ""
 }
 
 func (c *Status) Usage() string {

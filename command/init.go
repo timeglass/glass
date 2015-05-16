@@ -23,7 +23,7 @@ func (c *Init) Name() string {
 }
 
 func (c *Init) Description() string {
-	return fmt.Sprintf("<description>")
+	return fmt.Sprintf("Install hooks for the current repository, if hooks already exists they are truncated and rewritten.")
 }
 
 func (c *Init) Usage() string {

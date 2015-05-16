@@ -23,7 +23,7 @@ func (c *Pause) Name() string {
 }
 
 func (c *Pause) Description() string {
-	return fmt.Sprintf("<description>")
+	return fmt.Sprintf("Pauses the timer, running 'glass start' or editing a file in the repository resumes the timer")
 }
 
 func (c *Pause) Usage() string {
