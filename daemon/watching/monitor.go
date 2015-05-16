@@ -2,7 +2,6 @@ package watching
 
 import (
 	"fmt"
-	"github.com/advanderveer/timer/daemon/watching/event"
 	"path/filepath"
 	"time"
 )
@@ -49,7 +48,6 @@ func (e *MonitorError) Time() time.Time {
 // concrete implementation
 //
 type MonitorEvent struct {
-	*event.TimedNamed
 	r    string
 	f    string
 	dir  string
@@ -59,17 +57,22 @@ type MonitorEvent struct {
 
 func NewMonitorEvent(root, dir, file string, ops []int) *MonitorEvent {
 	ev := &MonitorEvent{
-		TimedNamed: event.NewTimedNamed("watching.directory", time.Now()),
-		r:          root,
-		f:          file,
-		dir:        dir,
-		ops:        ops,
+		r:    root,
+		f:    file,
+		dir:  dir,
+		ops:  ops,
+		time: time.Now(),
 	}
 
-	//setting this on construction is not really accurate but
-	//good enough
-	ev.happened()
 	return ev
+}
+
+func (e *MonitorEvent) Name() string {
+	return "watching.directory"
+}
+
+func (e *MonitorEvent) Time() time.Time {
+	return e.time
 }
 
 func (e *MonitorEvent) Operations() []int {
@@ -102,15 +105,33 @@ func (e *MonitorEvent) Describe() string {
 // Abstract for a monitor
 //
 type monitor struct {
-	dir string
-	*event.Outlet
+	dir    string
+	events chan DirEvent
+	errors chan Error
 }
 
 func newMonitor(dir string) *monitor {
 	return &monitor{
 		dir:    dir,
-		Outlet: event.NewEOutlet(),
+		events: make(chan DirEvent),
+		errors: make(chan Error),
 	}
+}
+
+func (m *Monitor) Events() chan DirEvent {
+	return m.events
+}
+
+func (m *Monitor) Errors() chan Error {
+	return m.errors
+}
+
+func (m *Monitor) Emit(ev DirEvent) {
+	m.events <- ev
+}
+
+func (m *Monitor) Throw(err Error) {
+	m.errors <- err
 }
 
 func (m *Monitor) Directory() string {
@@ -137,8 +158,4 @@ func (e *MonitorEvent) relDir() string {
 func (e *MonitorEvent) rel() string {
 	path, _ := filepath.Rel(e.r, e.file())
 	return path
-}
-
-func (e *MonitorEvent) happened() {
-	e.TimedNamed = event.NewTimedNamed(e.Name(), time.Now())
 }

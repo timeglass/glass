@@ -1,8 +1,14 @@
 package watching
 
-import (
-	"github.com/advanderveer/timer/daemon/watching/event"
-)
+//
+// A Generic interface that represents
+// a significant named error in time with a
+// human readable description
+//
+type Error interface {
+	Describe() string
+	Error() error
+}
 
 //
 // Dir event leaves the consumer
@@ -11,7 +17,8 @@ import (
 // changes on the file level cannot be guaranteed
 //
 type DirEvent interface {
-	event.Event
+	Describe() string
+	Name() string
 	Directory() string
 	Operations() []int
 }
@@ -22,8 +29,8 @@ type DirEvent interface {
 // watching events when started
 //
 type Watcher interface {
-	//watcher emits events
-	event.Emitter
+	Events() chan DirEvent
+	Errors() chan Error
 
 	//
 	// Start watching the provided directory

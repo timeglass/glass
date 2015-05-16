@@ -9,8 +9,6 @@ import (
 	"strings"
 	"testing"
 	"time"
-
-	"github.com/advanderveer/timer/daemon/watching/event"
 )
 
 var fsto = time.Millisecond * 30 //how long we wait for the file system to stabalize after setup
@@ -21,8 +19,8 @@ var noto = time.Millisecond * 80 //how long after the last event we check wether
 // Domain specific assertion
 //
 
-func assertNthMonitorEvent(t *testing.T, seq event.EventSequence, idx int, assertDir string, op int) {
-	event.AssertNthEvent(t, seq, idx, func(ev event.Event) (bool, string) {
+func assertNthMonitorEvent(t *testing.T, seq EventSequence, idx int, assertDir string, op int) {
+	AssertNthEvent(t, seq, idx, func(ev DirEvent) (bool, string) {
 
 		dev, ok := seq[idx].(*MonitorEvent)
 		if !ok {
@@ -87,15 +85,8 @@ func TestMonitorInterfaceCompliance(t *testing.T) {
 		t.Error(err)
 	}
 
-	// is also an emitter
-	var em event.Emitter
-	em, err = NewMonitor(dir)
-	if err != nil {
-		t.Error(err)
-	}
-
 	//is a normal event
-	var e event.Event
+	var e DirEvent
 	e = NewMonitorEvent(dir, dir, dir, []int{1})
 
 	//is a watcher specific dir event
@@ -105,7 +96,6 @@ func TestMonitorInterfaceCompliance(t *testing.T) {
 	_ = w
 	_ = e
 	_ = de
-	_ = em
 }
 
 //
@@ -133,15 +123,15 @@ func Test_File_Create(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//create file
 	ioutil.WriteFile(filepath.Join(dir, "test"), []byte{38, 38}, 0777)
-	seq := event.WaitForNEvents(t, w.Events(), 1, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 1, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, dir, Create)
 
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[1]")
 }
 
@@ -170,14 +160,14 @@ func Test_File_Create_InExistingSubFolder(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//create file in subdir
 	ioutil.WriteFile(filepath.Join(sub, "test"), []byte{38, 38}, 0777)
-	seq := event.WaitForNEvents(t, w.Events(), 1, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 1, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, sub, Create)
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[2]")
 }
 
@@ -199,7 +189,7 @@ func Test_File_Create_InSubFolder(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//create sub dir
 	sub, err := ioutil.TempDir(dir, "subdir")
@@ -215,15 +205,15 @@ func Test_File_Create_InSubFolder(t *testing.T) {
 
 	ioutil.WriteFile(filepath.Join(sub, "test"), []byte{38, 38}, 0777)
 
-	seq := event.WaitForNEvents(t, w.Events(), 2, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 2, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, dir, Create)
 
 	//create file in subdir
-	event.AssertNthEventName(t, seq, 1, "watching.directory")
+	AssertNthEventName(t, seq, 1, "watching.directory")
 	assertNthMonitorEvent(t, seq, 1, sub, Create)
 
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[3]")
 }
 
@@ -259,14 +249,14 @@ func Test_File_Modify_InExistingSubFolder(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//modify file in subdir
 	ioutil.WriteFile(filepath.Join(sub, "test"), []byte{38, 38}, 0777)
-	seq := event.WaitForNEvents(t, w.Events(), 1, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 1, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, sub, Modify)
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[4]")
 }
 
@@ -300,7 +290,7 @@ func Test_File_Delete_InExistingSubFolder(t *testing.T) {
 	}
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//remove file in sub folder
 	err = os.Remove(filepath.Join(sub, "test"))
@@ -308,10 +298,10 @@ func Test_File_Delete_InExistingSubFolder(t *testing.T) {
 		t.Error(err)
 	}
 
-	seq := event.WaitForNEvents(t, w.Events(), 1, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 1, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, sub, Remove)
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[5]")
 }
 
@@ -343,7 +333,7 @@ func Test_Directory_Delete_WithSubFile(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//remove folder and containering file, emits an event
 	//for the file as well as the directory
@@ -353,13 +343,13 @@ func Test_Directory_Delete_WithSubFile(t *testing.T) {
 	}
 
 	//it is undetermined which of the events will happen first
-	seq := event.WaitForNEvents(t, w.Events(), 2, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 2, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, fmt.Sprintf("%s,%s", dir, sub), Remove)
 
-	event.AssertNthEventName(t, seq, 1, "watching.directory")
+	AssertNthEventName(t, seq, 1, "watching.directory")
 	assertNthMonitorEvent(t, seq, 1, fmt.Sprintf("%s,%s", dir, sub), Remove)
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[6]")
 }
 
@@ -395,7 +385,7 @@ func Test_File_RenameToSameDirectory(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//rename a single file to something else in the same
 	//directory
@@ -405,13 +395,13 @@ func Test_File_RenameToSameDirectory(t *testing.T) {
 	}
 
 	//first a rename event, then a modify
-	seq := event.WaitForNEvents(t, w.Events(), 2, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 2, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, sub, Rename) //"rename" from
 
-	event.AssertNthEventName(t, seq, 1, "watching.directory")
+	AssertNthEventName(t, seq, 1, "watching.directory")
 	assertNthMonitorEvent(t, seq, 1, sub, Rename) //"modify" to
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[7]")
 }
 
@@ -448,7 +438,7 @@ func Test_File_RenameToOtherDirectory(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//rename a single file to something else to another
 	//directory
@@ -463,13 +453,13 @@ func Test_File_RenameToOtherDirectory(t *testing.T) {
 	// two rename events
 
 	//it is undeterminend which will happend first
-	seq := event.WaitForNEvents(t, w.Events(), 2, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 2, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, fmt.Sprintf("%s,%s", sub2, sub), 0) //"rename" from
 
-	event.AssertNthEventName(t, seq, 1, "watching.directory")
+	AssertNthEventName(t, seq, 1, "watching.directory")
 	assertNthMonitorEvent(t, seq, 1, fmt.Sprintf("%s,%s", sub2, sub), 0) //"modify" to
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[8]")
 }
 
@@ -501,7 +491,7 @@ func Test_Directory_RenameToSameDirectory(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//rename a single file to something else in the same
 	//directory
@@ -510,15 +500,15 @@ func Test_Directory_RenameToSameDirectory(t *testing.T) {
 		t.Error(err)
 	}
 
-	seq := event.WaitForNEvents(t, w.Events(), 2, to)
-	event.AssertNthEventName(t, seq, 0, "watching.directory")
+	seq := WaitForNEvents(t, w.Events(), 2, to)
+	AssertNthEventName(t, seq, 0, "watching.directory")
 	assertNthMonitorEvent(t, seq, 0, dir, Rename) //"rename" event to new new name
 
 	//dir rename causes a second event with fsevent
-	event.AssertNthEventName(t, seq, 1, "watching.directory")
+	AssertNthEventName(t, seq, 1, "watching.directory")
 	assertNthMonitorEvent(t, seq, 1, dir, Rename)
 
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[9]")
 }
 
@@ -541,11 +531,11 @@ func Test_StopMonitoring(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//create file
 	ioutil.WriteFile(filepath.Join(dir, "test"), []byte{38, 38}, 0777)
-	event.WaitForNEvents(t, w.Events(), 1, to)
+	WaitForNEvents(t, w.Events(), 1, to)
 
 	err = w.Stop()
 	if err != nil {
@@ -555,7 +545,7 @@ func Test_StopMonitoring(t *testing.T) {
 	//cause another event
 	ioutil.WriteFile(filepath.Join(dir, "test"), []byte{38, 38}, 0777)
 
-	event.NoMoreEvents(t, w.Events(), noto)
+	NoMoreEvents(t, w.Events(), noto)
 	log.Println("[10]")
 
 }
@@ -583,11 +573,11 @@ func Test_StopStartMonitoring(t *testing.T) {
 	defer w.Stop()
 
 	//gather errors
-	go event.GatherErrors(t, w.Errors())
+	go GatherErrors(t, w.Errors())
 
 	//create file
 	ioutil.WriteFile(filepath.Join(dir, "test"), []byte{38, 38}, 0777)
-	_ = event.WaitForNEvents(t, w.Events(), 1, to)
+	_ = WaitForNEvents(t, w.Events(), 1, to)
 
 	//stop
 	err = w.Stop()
@@ -604,7 +594,7 @@ func Test_StopStartMonitoring(t *testing.T) {
 	//cause another event
 	ioutil.WriteFile(filepath.Join(dir, "test"), []byte{38, 38}, 0777)
 
-	_ = event.WaitForNEvents(t, w.Events(), 1, to)
+	_ = WaitForNEvents(t, w.Events(), 1, to)
 	log.Println("[11]")
 
 }
