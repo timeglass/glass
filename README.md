@@ -1,6 +1,6 @@
 # Timeglass
 
-![Timeglass Screenshot](/../assets/assets/screenshot.png?raw=true "Timeglass Screenshot")
+![Timeglass Screenshot](/../assets/docs/screenshot.png?raw=true "Timeglass Screenshot")
 
 Fully automated time Tracking for Git Repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in [Go](http://golang.org/) and runs 100% on your own workstation: no internet or account registration required. 
 
@@ -9,7 +9,7 @@ __Features:__
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout`
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
 - The time you spent is automatically added to the next `git commit` message
-- Time is incremented by a "minimal billable unit" (MBU), one minute by default. 
+- Time is incremented by a "minimal billable unit" (MBU): one minute by default. 
 
 __Currently Supported (see roadmap):__
 
