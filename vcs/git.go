@@ -10,14 +10,20 @@ import (
 )
 
 var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+# @todo handle checkout files endge case
+
 sourceclock start
 `))
 
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-printf "$(cat $1)[$(sourceclock split)]" > "$1"
+# @todo handle merge/rebase kind of commits
+
+printf "$(cat $1) [$(sourceclock split)]" > "$1"
 `))
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+# @todo handle merge/rebase kind of commits
+
 sourceclock lap
 `))
 
