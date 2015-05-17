@@ -1,19 +1,26 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
+	"log"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/hashicorp/errwrap"
 	"github.com/labstack/echo"
 )
 
+var CheckVersionURL = "https://s3-eu-west-1.amazonaws.com/timeglass/version/VERSION"
+
 type Server struct {
-	timer    *Timer
-	httpb    string
-	router   *echo.Echo
-	listener net.Listener
+	timer             *Timer
+	httpb             string
+	router            *echo.Echo
+	listener          net.Listener
+	mostRecentVersion string
 
 	*http.Server
 }
@@ -41,9 +48,16 @@ func (s *Server) lap(c *echo.Context) *echo.HTTPError {
 }
 
 func (s *Server) status(c *echo.Context) *echo.HTTPError {
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"Time": s.timer.Time().String(),
-	})
+	data := map[string]interface{}{
+		"CurrentVersion":    Version,
+		"MostRecentVersion": s.mostRecentVersion,
+		"Time":              s.timer.Time().String(),
+	}
+
+	//check version without delaying response
+	go s.CheckVersion()
+
+	return c.JSON(http.StatusOK, data)
 }
 
 func version(c *echo.Context) *echo.HTTPError {
@@ -58,11 +72,12 @@ func NewServer(httpb string, timer *Timer) (*Server, error) {
 	}
 
 	s := &Server{
-		timer:    timer,
-		httpb:    httpb,
-		router:   router,
-		listener: l,
-		Server:   &http.Server{Handler: router},
+		timer:             timer,
+		httpb:             httpb,
+		router:            router,
+		listener:          l,
+		mostRecentVersion: Version,
+		Server:            &http.Server{Handler: router},
 	}
 
 	router.Get("/", version)
@@ -86,4 +101,18 @@ func (s *Server) Stop() {
 func (s *Server) Start() error {
 	s.timer.Start()
 	return s.Server.Serve(s.listener)
+}
+
+func (s *Server) CheckVersion() {
+	resp, err := http.Get(CheckVersionURL)
+	if err == nil {
+		defer resp.Body.Close()
+		buff := bytes.NewBuffer(nil)
+		_, err = io.Copy(buff, resp.Body)
+		if err != nil {
+			log.Printf("Failed to read response body for version check: %s", err)
+		} else {
+			s.mostRecentVersion = strings.TrimSpace(buff.String())
+		}
+	}
 }

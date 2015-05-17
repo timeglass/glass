@@ -51,7 +51,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 	}
 
 	client := NewClient(info)
-	t, err := client.Split()
+	t, err := client.GetStatus()
 	if err != nil {
 		if err == ErrDaemonDown {
 			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)

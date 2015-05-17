@@ -20,11 +20,17 @@ type Client struct {
 	*http.Client
 }
 
+type StatusData struct {
+	Time              string
+	MostRecentVersion string
+	CurrentVersion    string
+}
+
 func NewClient(info *model.Daemon) *Client {
 	return &Client{
 		info: info,
 		Client: &http.Client{
-			Timeout: time.Duration(100 * time.Millisecond),
+			Timeout: time.Duration(400 * time.Millisecond),
 		},
 	}
 }
@@ -67,7 +73,7 @@ func (c *Client) Lap() (time.Duration, error) {
 	return d, nil
 }
 
-func (c *Client) Split() (time.Duration, error) {
+func (c *Client) GetStatus() (time.Duration, error) {
 	resp, err := c.Get(fmt.Sprintf("http://%s/timer.status", c.info.Addr))
 	if err != nil {
 		return 0, ErrDaemonDown
@@ -77,9 +83,7 @@ func (c *Client) Split() (time.Duration, error) {
 
 	dec := json.NewDecoder(resp.Body)
 	defer resp.Body.Close()
-	status := struct {
-		Time string
-	}{}
+	status := &StatusData{}
 
 	err = dec.Decode(&status)
 	if err != nil {
