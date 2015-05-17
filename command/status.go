@@ -79,8 +79,16 @@ func (c *Status) Run(ctx *cli.Context) error {
 		if curr != 0 && recent > curr {
 			fmt.Println("A new version of Timeglass is available, please upgrade from https://github.com/timeglass/glass/releases.")
 		}
+	} else if t.Seconds() == 0 {
+		//for script usage we return nothing when there has zero
+		//time elapsed, this prevents empty bracke
+		return nil
 	}
 
-	fmt.Println(t)
+	fmt.Printf(" [%s]", t)
+	if !ctx.Bool("time-only") {
+		fmt.Println()
+	}
+
 	return nil
 }
