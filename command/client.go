@@ -73,12 +73,12 @@ func (c *Client) Lap() (time.Duration, error) {
 	return d, nil
 }
 
-func (c *Client) GetStatus() (time.Duration, error) {
+func (c *Client) GetStatus() (*StatusData, error) {
 	resp, err := c.Get(fmt.Sprintf("http://%s/timer.status", c.info.Addr))
 	if err != nil {
-		return 0, ErrDaemonDown
+		return nil, ErrDaemonDown
 	} else if resp.StatusCode != 200 {
-		return 0, fmt.Errorf("Unexpected StatusCode from Daemon: %d", resp.StatusCode)
+		return nil, fmt.Errorf("Unexpected StatusCode from Daemon: %d", resp.StatusCode)
 	}
 
 	dec := json.NewDecoder(resp.Body)
@@ -87,13 +87,8 @@ func (c *Client) GetStatus() (time.Duration, error) {
 
 	err = dec.Decode(&status)
 	if err != nil {
-		return 0, errwrap.Wrapf("Failed to decode json response: {{err}}", err)
+		return status, errwrap.Wrapf("Failed to decode json response: {{err}}", err)
 	}
 
-	d, err := time.ParseDuration(status.Time)
-	if err != nil {
-		return 0, errwrap.Wrapf(fmt.Sprintf("Failed to parse '%s' as a time duration: {{err}}", status.Time), err)
-	}
-
-	return d, nil
+	return status, nil
 }
