@@ -74,7 +74,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 
 	//simple semver check
 	if !ctx.Bool("time-only") {
-		curr, _ := strconv.Atoi(strings.Replace("0.2.0", ".", "", 2))
+		curr, _ := strconv.Atoi(strings.Replace(status.CurrentVersion, ".", "", 2))
 		recent, _ := strconv.Atoi(strings.Replace(status.MostRecentVersion, ".", "", 2))
 		if curr != 0 && recent > curr {
 			fmt.Println("A new version of Timeglass is available, please upgrade from https://github.com/timeglass/glass/releases.")
