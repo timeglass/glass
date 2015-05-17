@@ -3,6 +3,9 @@ package command
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
@@ -31,7 +34,11 @@ func (c *Status) Usage() string {
 }
 
 func (c *Status) Flags() []cli.Flag {
-	return []cli.Flag{}
+	return []cli.Flag{
+		cli.BoolFlag{
+			Name:  "time-only",
+			Usage: "Only display the time",
+		}}
 }
 
 func (c *Status) Action() func(ctx *cli.Context) {
@@ -51,7 +58,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 	}
 
 	client := NewClient(info)
-	t, err := client.Split()
+	status, err := client.GetStatus()
 	if err != nil {
 		if err == ErrDaemonDown {
 			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
@@ -60,6 +67,28 @@ func (c *Status) Run(ctx *cli.Context) error {
 		}
 	}
 
-	fmt.Println(t)
+	t, err := time.ParseDuration(status.Time)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to parse '%s' as a time duration: {{err}}", status.Time), err)
+	}
+
+	//simple semver check
+	if !ctx.Bool("time-only") {
+		curr, _ := strconv.Atoi(strings.Replace(status.CurrentVersion, ".", "", 2))
+		recent, _ := strconv.Atoi(strings.Replace(status.MostRecentVersion, ".", "", 2))
+		if curr != 0 && recent > curr {
+			fmt.Println("A new version of Timeglass is available, please upgrade from https://github.com/timeglass/glass/releases.")
+		}
+	} else if t.Seconds() == 0 {
+		//for script usage we return nothing when there has zero
+		//time elapsed, this prevents empty bracke
+		return nil
+	}
+
+	fmt.Printf(" [%s]", t)
+	if !ctx.Bool("time-only") {
+		fmt.Println()
+	}
+
 	return nil
 }

@@ -33,6 +33,9 @@ func main() {
 		log.Fatal(err)
 	}
 
+	//check version without delaying start times
+	go svr.CheckVersion()
+
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatal(errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err))
