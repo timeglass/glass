@@ -51,6 +51,11 @@ func (c *Start) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
 	}
 
+	conf, err := m.ReadConfig()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
+	}
+
 	client := NewClient(info)
 	err = client.Call("timer.start")
 	if err != nil {
@@ -58,7 +63,7 @@ func (c *Start) Run(ctx *cli.Context) error {
 			return err
 		}
 
-		cmd := exec.Command("glass-daemon")
+		cmd := exec.Command("glass-daemon", fmt.Sprintf("--mbu=%s", conf.MBU))
 		err := cmd.Start()
 		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to start Daemon: {{err}}"), err)
