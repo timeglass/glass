@@ -128,5 +128,9 @@ func (m *Model) ReadConfig() (*Config, error) {
 		return nil, errwrap.Wrapf(fmt.Sprintf("Error decoding '%s' as JSON, please check for syntax errors: {{err}}", p), err)
 	}
 
+	if time.Duration(conf.MBU) < time.Minute {
+		return nil, fmt.Errorf("configuration 'mbu': An MBU of less then 1min is not supported, received: '%s'", conf.MBU)
+	}
+
 	return conf, nil
 }

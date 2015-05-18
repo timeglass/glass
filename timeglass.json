@@ -1,3 +1,4 @@
 {
+	"mbu": "1m10s",
 	"commit_message": " [spent {{.}}]"
 }
