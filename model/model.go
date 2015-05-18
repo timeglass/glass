@@ -49,8 +49,10 @@ func (m *Model) Open() (*bolt.DB, error) {
 }
 
 func (m *Model) Close(db *bolt.DB) {
+	err := db.Close()
+
 	//@todo handle error?
-	db.Close()
+	_ = err
 }
 
 func (m *Model) UpsertDaemonInfo(info *Daemon) error {
@@ -102,4 +104,8 @@ func (m *Model) ReadDaemonInfo() (*Daemon, error) {
 
 		return nil
 	})
+}
+
+func (m *Model) ReadConfig() (*Config, error) {
+	return DefaultConfig, nil
 }
