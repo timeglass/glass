@@ -47,6 +47,10 @@ __Currently Supported: (see roadmap)__
   git log -n 1
   ```
 
+## Documentation
+More documentation will be available in the future, for now we offer the following:
+
+- [Configuration Reference](/docs/config.md)
 
 ## Roadmap, input welcome!
 
