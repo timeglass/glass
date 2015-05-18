@@ -60,6 +60,11 @@ func (c *Status) Run(ctx *cli.Context) error {
 
 	conf, err := m.ReadConfig()
 	if err != nil {
+		//@todo find a more elegant way to 'print' this for script usage
+		if ctx.Bool("time-only") {
+			return nil
+		}
+
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}
 

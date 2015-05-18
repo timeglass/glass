@@ -2,6 +2,7 @@ package model
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/user"
@@ -107,5 +108,25 @@ func (m *Model) ReadDaemonInfo() (*Daemon, error) {
 }
 
 func (m *Model) ReadConfig() (*Config, error) {
-	return DefaultConfig, nil
+	conf := DefaultConfig
+
+	p := filepath.Join(m.repoDir, "timeglass.json")
+	f, err := os.Open(p)
+	if err != nil {
+		if err == os.ErrNotExist {
+			return conf, nil
+		}
+
+		return nil, errwrap.Wrapf(fmt.Sprintf("Error opening configuration file '%s', it does exist but: {{err}}", p), err)
+	}
+
+	dec := json.NewDecoder(f)
+
+	defer f.Close()
+	err = dec.Decode(conf)
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Error decoding '%s' as JSON, please check for syntax errors: {{err}}", p), err)
+	}
+
+	return conf, nil
 }
