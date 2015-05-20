@@ -60,7 +60,7 @@ __Currently Supported: (see roadmap)__
 - __Handling `git stash`:__ Git has the ability to stash work for a later commit prior to switching branches. Currently the timer unable to detect this; adding extra time to next commit. Input welcome [here](https://github.com/Timeglass/glass/issues/3)
 - __OS Restarts:__ Whenever the OS shuts down the repository might still contain uncommited work and a running timer, currently the timer is not restarted when this happens. _Input on how to achieve this is welcome [here](https://github.com/Timeglass/glass/issues/8)_
 
-## Contributor
+## Contributors
 in alphabetical order:
 
 - Kristof Vannotten ([kvannotten](https://github.com/kvannotten))
