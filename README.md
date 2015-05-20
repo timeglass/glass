@@ -26,7 +26,7 @@ __Currently Supported: (see roadmap)__
  glass init
  ```
  
- _NOTE: you'll only have to run this once per clone_
+ _NOTE: you'll have to run this once per clone_
 
 3. Start the timer by creating a new branch: 
 

@@ -11,7 +11,7 @@ Timeglass can be configured by creating a `timeglass.json` file in the root of t
 ## MBU
 __key__: `mbu`  
 
-A timer runs in the background and increments by set amount of time each tick: the "minimal billable unit". It accepts a human readable format that is parsed by: [time.ParseDuration()](http://golang.org/pkg/time/#ParseDuration), e.g: `1h5m2s`
+A timer runs in the background and increments by a set amount of time each tick: the "minimal billable unit". It accepts a human readable format that is parsed by: [time.ParseDuration()](http://golang.org/pkg/time/#ParseDuration), e.g: `1h5m2s`
 
 ## Commit Message Template
 __key__: `commit_message`  
