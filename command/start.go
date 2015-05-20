@@ -24,7 +24,7 @@ func (c *Start) Name() string {
 }
 
 func (c *Start) Description() string {
-	return fmt.Sprintf("Starts the daemon that is reposible for tracking time for the current repository, if the daemon is already running this operations is a no-op.")
+	return fmt.Sprintf("Starts the daemon that is reposible for tracking time for the current repository. If the daemon is already running, this operation is a no-op.")
 }
 
 func (c *Start) Usage() string {
