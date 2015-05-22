@@ -73,6 +73,10 @@ func (c *Push) Run(ctx *cli.Context) error {
 	}
 
 	fmt.Printf("Pushing time-data to remote '%s'...\n", remote)
+	if refs != "" {
+		fmt.Printf("Explicit refs: %s\n", refs)
+	}
+
 	err = vc.Push(remote, refs)
 	if err != nil {
 		return errwrap.Wrapf("Failed to push time data: {{err}}", err)
