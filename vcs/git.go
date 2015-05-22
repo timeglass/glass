@@ -83,16 +83,17 @@ func (g *Git) Fetch(remote string) error {
 	cmd.Stderr = buff
 
 	err := cmd.Run()
+	if err != nil && strings.Contains(buff.String(), "Couldn't find remote ref") {
+		return ErrNoRemoteTimeData
+	}
+
+	//in other cases present user with git output
+	_, err2 := io.Copy(os.Stderr, buff)
+	if err2 != nil {
+		return err
+	}
+
 	if err != nil {
-		if strings.Contains(buff.String(), "Couldn't find remote ref") {
-			return ErrNoRemoteTimeData
-		}
-
-		_, err2 := io.Copy(os.Stderr, buff)
-		if err2 != nil {
-			return err
-		}
-
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch from remote '%s' using git command %s: {{err}}", remote, args), err)
 	}
 
@@ -114,16 +115,17 @@ func (g *Git) Push(remote string, refs string) error {
 	cmd.Stderr = buff
 
 	err := cmd.Run()
+	if err != nil && strings.Contains(buff.String(), "src refspec refs/notes/"+TimeSpentNotesRef+" does not match any") {
+		return ErrNoLocalTimeData
+	}
+
+	//in other cases present user with git output
+	_, err2 := io.Copy(os.Stderr, buff)
+	if err2 != nil {
+		return err
+	}
+
 	if err != nil {
-		if strings.Contains(buff.String(), "src refspec refs/notes/"+TimeSpentNotesRef+" does not match any") {
-			return ErrNoLocalTimeData
-		}
-
-		_, err2 := io.Copy(os.Stderr, buff)
-		if err2 != nil {
-			return err
-		}
-
 		return errwrap.Wrapf(fmt.Sprintf("Failed to push to remote '%s' using git command %s: {{err}}", remote, args), err)
 	}
 

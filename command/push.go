@@ -102,6 +102,5 @@ func (c *Push) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to push time data: {{err}}", err)
 	}
 
-	fmt.Println("Timeglass: time data pushed successfully")
 	return nil
 }
