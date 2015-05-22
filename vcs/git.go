@@ -1,7 +1,9 @@
 package vcs
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -75,11 +77,22 @@ func (g *Git) Log(t time.Duration) error {
 func (g *Git) Fetch(remote string) error {
 	args := []string{"fetch", remote, fmt.Sprintf("refs/notes/%s:refs/notes/%s", TimeSpentNotesRef, TimeSpentNotesRef)}
 	cmd := exec.Command("git", args...)
+	buff := bytes.NewBuffer(nil)
+
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = buff
 
 	err := cmd.Run()
 	if err != nil {
+		if strings.Contains(buff.String(), "Couldn't find remote ref") {
+			return ErrNoRemoteTimeData
+		}
+
+		_, err2 := io.Copy(os.Stderr, buff)
+		if err2 != nil {
+			return err
+		}
+
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch from remote '%s' using git command %s: {{err}}", remote, args), err)
 	}
 
@@ -95,11 +108,22 @@ func (g *Git) Push(remote string, refs string) error {
 
 	args := []string{"push", remote, fmt.Sprintf("refs/notes/%s", TimeSpentNotesRef)}
 	cmd := exec.Command("git", args...)
+	buff := bytes.NewBuffer(nil)
+
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stderr = buff
 
 	err := cmd.Run()
 	if err != nil {
+		if strings.Contains(buff.String(), "src refspec refs/notes/"+TimeSpentNotesRef+" does not match any") {
+			return ErrNoLocalTimeData
+		}
+
+		_, err2 := io.Copy(os.Stderr, buff)
+		if err2 != nil {
+			return err
+		}
+
 		return errwrap.Wrapf(fmt.Sprintf("Failed to push to remote '%s' using git command %s: {{err}}", remote, args), err)
 	}
 

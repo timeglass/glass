@@ -1,10 +1,14 @@
 package vcs
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
 )
+
+var ErrNoRemoteTimeData = errors.New("Remote doesn't have any time data")
+var ErrNoLocalTimeData = errors.New("Local clone doesn't have any time data")
 
 type VCS interface {
 	Name() string

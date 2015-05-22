@@ -94,6 +94,11 @@ func (c *Push) Run(ctx *cli.Context) error {
 
 	err = vc.Push(remote, refs)
 	if err != nil {
+		if err == vcs.ErrNoLocalTimeData {
+			fmt.Printf("Timeglass: local clone has no time data (yet), nothing to push to '%s'. Start a timer and commit changes to record local time data.\n", remote)
+			return nil
+		}
+
 		return errwrap.Wrapf("Failed to push time data: {{err}}", err)
 	}
 
