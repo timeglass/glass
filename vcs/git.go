@@ -36,7 +36,7 @@ glass lap
 
 var PostReceiveTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #push time data after push
-glass push
+echo $PWD
 `))
 
 type Git struct {
