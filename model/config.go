@@ -29,9 +29,11 @@ func (t *MBU) UnmarshalJSON(data []byte) error {
 var DefaultConfig = &Config{
 	MBU:           MBU(time.Minute),
 	CommitMessage: " [{{.}}]",
+	AutoPush:      true,
 }
 
 type Config struct {
 	MBU           MBU    `json:"mbu"`
 	CommitMessage string `json:"commit_message"`
+	AutoPush      bool   `json:"auto_push"`
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
 
+	"github.com/timeglass/glass/model"
 	"github.com/timeglass/glass/vcs"
 )
 
@@ -50,6 +51,12 @@ func (c *Push) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
+	m := model.New(dir)
+	conf, err := m.ReadConfig()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
+	}
+
 	//hooks require us require us to check the refs that are pushed over stdin
 	//to prevent inifinte push loop
 	refs := ""
@@ -65,6 +72,12 @@ func (c *Push) Run(ctx *cli.Context) error {
 		//this probalby means means there is nothing left to push and
 		//we return here to prevent recursive push
 		if refs == "" {
+			return nil
+		}
+
+		//configuration can explicitly request not to push time data automatically
+		//on hook usage
+		if !conf.AutoPush {
 			return nil
 		}
 	}
