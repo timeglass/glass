@@ -60,6 +60,13 @@ func (c *Push) Run(ctx *cli.Context) error {
 		}
 
 		refs = string(bytes)
+		//when `glass push` triggers the pre-push hook it will not
+		//provide any refs on stdin
+		//this probalby means means there is nothing left to push and
+		//we return here to prevent recursive push
+		if refs == "" {
+			return nil
+		}
 	}
 
 	vc, err := vcs.GetVCS(dir)
@@ -73,10 +80,6 @@ func (c *Push) Run(ctx *cli.Context) error {
 	}
 
 	fmt.Printf("Pushing time-data to remote '%s'...\n", remote)
-	if refs != "" {
-		fmt.Printf("Explicit refs: %s\n", refs)
-	}
-
 	err = vc.Push(remote, refs)
 	if err != nil {
 		return errwrap.Wrapf("Failed to push time data: {{err}}", err)

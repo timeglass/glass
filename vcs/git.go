@@ -37,6 +37,7 @@ glass lap
 
 var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #push time data
+echo Hook $1 $2
 glass push $1 --refs-on-stdin
 `))
 
