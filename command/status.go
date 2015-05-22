@@ -72,6 +72,11 @@ func (c *Status) Run(ctx *cli.Context) error {
 	status, err := client.GetStatus()
 	if err != nil {
 		if err == ErrDaemonDown {
+			//if called from hook, don't interrupt
+			if ctx.Bool("time-only") {
+				return nil
+			}
+
 			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
 		} else {
 			return err

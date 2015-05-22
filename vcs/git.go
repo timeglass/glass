@@ -34,7 +34,7 @@ esac
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #always reset after commit
-glass lap
+glass lap --from-hook
 `))
 
 var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh

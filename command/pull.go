@@ -23,7 +23,7 @@ func (c *Pull) Name() string {
 }
 
 func (c *Pull) Description() string {
-	return fmt.Sprintf("PUll the Timeglass notes branch from the remote repository. Provide the remote's name as the first argument, if no argument is provided it tries to pull from to the VCS default remote")
+	return fmt.Sprintf("Pull the Timeglass notes branch from the remote repository. Provide the remote's name as the first argument, if no argument is provided it tries to pull from to the VCS default remote")
 }
 
 func (c *Pull) Usage() string {

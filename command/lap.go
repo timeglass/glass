@@ -32,7 +32,12 @@ func (c *Lap) Usage() string {
 }
 
 func (c *Lap) Flags() []cli.Flag {
-	return []cli.Flag{}
+	return []cli.Flag{
+		cli.BoolFlag{
+			Name:  "from-hook",
+			Usage: "Indicate it is called from a git, now expects refs on stdin",
+		},
+	}
 }
 
 func (c *Lap) Action() func(ctx *cli.Context) {
@@ -56,6 +61,11 @@ func (c *Lap) Run(ctx *cli.Context) error {
 	t, err := client.Lap()
 	if err != nil {
 		if err == ErrDaemonDown {
+			//if were calling this from a hook, supress errors
+			if ctx.Bool("from-hook") {
+				return nil
+			}
+
 			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
 		} else {
 			return err
