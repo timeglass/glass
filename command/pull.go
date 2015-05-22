@@ -59,6 +59,6 @@ func (c *Pull) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to pull time data: {{err}}", err)
 	}
 
-	fmt.Println("Timeglass: Fetched successfully")
+	fmt.Println("Timeglass: time data fetched successfully")
 	return nil
 }

@@ -55,5 +55,5 @@ func (c *Init) Run(ctx *cli.Context) error {
 	}
 
 	fmt.Println("Timeglass: hooks written")
-	return nil
+	return NewPull().Run(ctx)
 }

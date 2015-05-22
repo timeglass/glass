@@ -8,8 +8,10 @@ __Features:__
 
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout`
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
-- The time you spent is automatically added to the next `git commit` message
+- The time you spent is automatically added to the next `git commit` message by default
 - The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1m. 
+- Spent time is stored as commit metadata using [git-notes](git-scm.com/docs/git-notes) and pushed automatically to your remote by default
+
 
 __Currently Supported: (see roadmap)__
 
