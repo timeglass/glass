@@ -34,8 +34,8 @@ func (c *Push) Usage() string {
 func (c *Push) Flags() []cli.Flag {
 	return []cli.Flag{
 		cli.BoolFlag{
-			Name:  "refs-on-stdin",
-			Usage: "Expect the refs that are pushed on stdin",
+			Name:  "from-hook",
+			Usage: "Indicate it is called from a git, now expects refs on stdin",
 		},
 	}
 }
@@ -53,7 +53,7 @@ func (c *Push) Run(ctx *cli.Context) error {
 	//hooks require us require us to check the refs that are pushed over stdin
 	//to prevent inifinte push loop
 	refs := ""
-	if ctx.Bool("refs-on-stdin") {
+	if ctx.Bool("from-hook") {
 		bytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return errwrap.Wrapf("Failed to read from stdin: {{err}}", err)
