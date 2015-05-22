@@ -34,9 +34,9 @@ var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 glass lap
 `))
 
-var PostReceiveTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-#push time data after push
-echo $PWD
+var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+#push time data
+glass push $1
 `))
 
 type Git struct {
@@ -151,19 +151,19 @@ func (g *Git) Hook() error {
 	}
 
 	//post receive: push()
-	postrf, err := os.Create(filepath.Join(hpath, "post-receive"))
+	prepushf, err := os.Create(filepath.Join(hpath, "pre-push"))
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-receive  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create pre-push  '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = postrf.Chmod(0766)
+	err = prepushf.Chmod(0766)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-receive file '%s' executable: {{err}}", hpath), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to make pre-push file '%s' executable: {{err}}", hpath), err)
 	}
 
-	err = PostReceiveTmpl.Execute(postrf, struct{}{})
+	err = PrePushTmpl.Execute(prepushf, struct{}{})
 	if err != nil {
-		return errwrap.Wrapf("Failed to run post-receive template: {{err}}", err)
+		return errwrap.Wrapf("Failed to run pre-push template: {{err}}", err)
 	}
 
 	return nil

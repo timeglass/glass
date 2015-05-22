@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -44,6 +45,13 @@ func (c *Push) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
+	bytes, err := ioutil.ReadAll(os.Stdin)
+	if err != nil {
+		return errwrap.Wrapf("Failed to read from stdin: {{err}}", err)
+	}
+
+	fmt.Println(string(bytes))
+
 	vc, err := vcs.GetVCS(dir)
 	if err != nil {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
@@ -54,6 +62,7 @@ func (c *Push) Run(ctx *cli.Context) error {
 		remote = vc.DefaultRemote()
 	}
 
+	fmt.Printf("Pushing time-data to remote '%s'...\n", remote)
 	err = vc.Push(remote)
 	if err != nil {
 		return errwrap.Wrapf("Failed to push time data: {{err}}", err)
