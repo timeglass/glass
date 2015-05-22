@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
 	"time"
 
@@ -36,7 +37,7 @@ glass lap
 
 var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #push time data
-glass push $1
+glass push $1 --refs-on-stdin
 `))
 
 type Git struct {
@@ -85,7 +86,13 @@ func (g *Git) Fetch(remote string) error {
 	return nil
 }
 
-func (g *Git) Push(remote string) error {
+func (g *Git) Push(remote string, refs string) error {
+
+	//if time ref is already pushed, dont do it again
+	if strings.Contains(refs, TimeSpentNotesRef) {
+		return nil
+	}
+
 	args := []string{"push", remote, fmt.Sprintf("refs/notes/%s", TimeSpentNotesRef)}
 	cmd := exec.Command("git", args...)
 	cmd.Stdout = os.Stdout
