@@ -8,8 +8,10 @@ __Features:__
 
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout`
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
-- The time you spent is automatically added to the next `git commit` message
+- The time you spent is automatically added to the next `git commit` message by default
 - The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1m. 
+- Spent time is stored as commit metadata using [git-notes](git-scm.com/docs/git-notes) and pushed automatically to your remote by default
+
 
 __Currently Supported: (see roadmap)__
 
@@ -26,7 +28,7 @@ __Currently Supported: (see roadmap)__
  glass init
  ```
  
- _NOTE: you'll only have to run this once per clone_
+ _NOTE: you'll have to run this once per clone_
 
 3. Start the timer by creating a new branch: 
 
@@ -47,6 +49,10 @@ __Currently Supported: (see roadmap)__
   git log -n 1
   ```
 
+## Documentation
+More documentation will be available in the future, for now we offer the following:
+
+- [Configuration Reference](/docs/config.md)
 
 ## Roadmap, input welcome!
 

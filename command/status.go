@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"github.com/codegangsta/cli"
@@ -57,10 +58,25 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
 	}
 
+	conf, err := m.ReadConfig()
+	if err != nil {
+		//@todo find a more elegant way to 'print' this for script usage
+		if ctx.Bool("time-only") {
+			return nil
+		}
+
+		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
+	}
+
 	client := NewClient(info)
 	status, err := client.GetStatus()
 	if err != nil {
 		if err == ErrDaemonDown {
+			//if called from hook, don't interrupt
+			if ctx.Bool("time-only") {
+				return nil
+			}
+
 			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
 		} else {
 			return err
@@ -72,8 +88,8 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to parse '%s' as a time duration: {{err}}", status.Time), err)
 	}
 
-	//simple semver check
 	if !ctx.Bool("time-only") {
+		//simple semver check
 		curr, _ := strconv.Atoi(strings.Replace(status.CurrentVersion, ".", "", 2))
 		recent, _ := strconv.Atoi(strings.Replace(status.MostRecentVersion, ".", "", 2))
 		if curr != 0 && recent > curr {
@@ -85,7 +101,29 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return nil
 	}
 
-	fmt.Printf(" [%s]", t)
+	//parse temlate and only report error if we're talking to a human
+	tmpl, err := template.New("commit-msg").Parse(conf.CommitMessage)
+	if err != nil {
+		//@todo find a more elegant way to 'print' this for script usage
+		if ctx.Bool("time-only") {
+			return nil
+		} else {
+			return errwrap.Wrapf(fmt.Sprintf("Failed to parse commit_message: '%s' in configuration as a text/template: {{err}}", conf.CommitMessage), err)
+		}
+	}
+
+	//execute template and write to stdout
+	err = tmpl.Execute(os.Stdout, t)
+	if err != nil {
+		//@todo find a more elegant way to 'print' this for script usage
+		if ctx.Bool("time-only") {
+			return nil
+		} else {
+			return errwrap.Wrapf(fmt.Sprintf("Failed to execute commit_message: template for time '%s': {{err}}", t), err)
+		}
+	}
+
+	//end with newline if we're printing for a human
 	if !ctx.Bool("time-only") {
 		fmt.Println()
 	}

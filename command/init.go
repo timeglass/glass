@@ -44,16 +44,16 @@ func (c *Init) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	vcs, err := vcs.GetVCS(dir)
+	vc, err := vcs.GetVCS(dir)
 	if err != nil {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	err = vcs.Hook()
+	err = vc.Hook()
 	if err != nil {
 		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
 	}
 
 	fmt.Println("Timeglass: hooks written")
-	return nil
+	return NewPull().Run(ctx)
 }

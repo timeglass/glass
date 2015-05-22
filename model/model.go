@@ -2,6 +2,7 @@ package model
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/user"
@@ -49,8 +50,10 @@ func (m *Model) Open() (*bolt.DB, error) {
 }
 
 func (m *Model) Close(db *bolt.DB) {
+	err := db.Close()
+
 	//@todo handle error?
-	db.Close()
+	_ = err
 }
 
 func (m *Model) UpsertDaemonInfo(info *Daemon) error {
@@ -102,4 +105,32 @@ func (m *Model) ReadDaemonInfo() (*Daemon, error) {
 
 		return nil
 	})
+}
+
+func (m *Model) ReadConfig() (*Config, error) {
+	conf := DefaultConfig
+
+	p := filepath.Join(m.repoDir, "timeglass.json")
+	f, err := os.Open(p)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return conf, nil
+		}
+
+		return nil, errwrap.Wrapf(fmt.Sprintf("Error opening configuration file '%s', it does exist but: {{err}}", p), err)
+	}
+
+	dec := json.NewDecoder(f)
+
+	defer f.Close()
+	err = dec.Decode(conf)
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Error decoding '%s' as JSON, please check for syntax errors: {{err}}", p), err)
+	}
+
+	if time.Duration(conf.MBU) < time.Minute {
+		return nil, fmt.Errorf("configuration 'mbu': An MBU of less then 1min is not supported, received: '%s'", conf.MBU)
+	}
+
+	return conf, nil
 }

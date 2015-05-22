@@ -1,14 +1,23 @@
 package vcs
 
 import (
+	"errors"
 	"fmt"
 	"strings"
+	"time"
 )
+
+var ErrNoRemoteTimeData = errors.New("Remote doesn't have any time data")
+var ErrNoLocalTimeData = errors.New("Local clone doesn't have any time data")
 
 type VCS interface {
 	Name() string
 	Supported() bool
 	Hook() error
+	Push(string, string) error
+	Fetch(string) error
+	DefaultRemote() string
+	Log(time.Duration) error
 }
 
 func GetVCS(dir string) (VCS, error) {
