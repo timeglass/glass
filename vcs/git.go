@@ -34,7 +34,7 @@ var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 glass lap
 `))
 
-var PostUpdateTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+var PostReceiveTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #push time data after push
 glass push
 `))
@@ -137,7 +137,7 @@ func (g *Git) Hook() error {
 	//post commit: lap()
 	postcof, err := os.Create(filepath.Join(hpath, "post-commit"))
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit '%s': {{err}}", postchf.Name()), err)
 	}
 
 	err = postcof.Chmod(0766)
@@ -150,20 +150,20 @@ func (g *Git) Hook() error {
 		return errwrap.Wrapf("Failed to run post-commit template: {{err}}", err)
 	}
 
-	//post update: push()
-	postuf, err := os.Create(filepath.Join(hpath, "post-update"))
+	//post receive: push()
+	postrf, err := os.Create(filepath.Join(hpath, "post-receive"))
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-update  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-receive  '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = postuf.Chmod(0766)
+	err = postrf.Chmod(0766)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-update file '%s' executable: {{err}}", hpath), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-receive file '%s' executable: {{err}}", hpath), err)
 	}
 
-	err = PostUpdateTmpl.Execute(postuf, struct{}{})
+	err = PostReceiveTmpl.Execute(postrf, struct{}{})
 	if err != nil {
-		return errwrap.Wrapf("Failed to run post-update template: {{err}}", err)
+		return errwrap.Wrapf("Failed to run post-receive template: {{err}}", err)
 	}
 
 	return nil
