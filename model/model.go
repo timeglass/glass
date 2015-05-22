@@ -113,7 +113,7 @@ func (m *Model) ReadConfig() (*Config, error) {
 	p := filepath.Join(m.repoDir, "timeglass.json")
 	f, err := os.Open(p)
 	if err != nil {
-		if err == os.ErrNotExist {
+		if os.IsNotExist(err) {
 			return conf, nil
 		}
 
