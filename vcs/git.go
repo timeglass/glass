@@ -34,6 +34,11 @@ var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 glass lap
 `))
 
+var PostUpdateTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
+#push time data after push
+glass push
+`))
+
 type Git struct {
 	dir string
 }
@@ -143,6 +148,22 @@ func (g *Git) Hook() error {
 	err = PostCommitTmpl.Execute(postcof, struct{}{})
 	if err != nil {
 		return errwrap.Wrapf("Failed to run post-commit template: {{err}}", err)
+	}
+
+	//post update: push()
+	postuf, err := os.Create(filepath.Join(hpath, "post-update"))
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-update  '%s': {{err}}", postchf.Name()), err)
+	}
+
+	err = postuf.Chmod(0766)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-update file '%s' executable: {{err}}", hpath), err)
+	}
+
+	err = PostUpdateTmpl.Execute(postuf, struct{}{})
+	if err != nil {
+		return errwrap.Wrapf("Failed to run post-update template: {{err}}", err)
 	}
 
 	return nil
