@@ -2,6 +2,7 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 
 	"github.com/codegangsta/cli"
@@ -31,7 +32,12 @@ func (c *Push) Usage() string {
 }
 
 func (c *Push) Flags() []cli.Flag {
-	return []cli.Flag{}
+	return []cli.Flag{
+		cli.BoolFlag{
+			Name:  "refs-on-stdin",
+			Usage: "Expect the refs that are pushed on stdin",
+		},
+	}
 }
 
 func (c *Push) Action() func(ctx *cli.Context) {
@@ -44,6 +50,25 @@ func (c *Push) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
+	//hooks require us require us to check the refs that are pushed over stdin
+	//to prevent inifinte push loop
+	refs := ""
+	if ctx.Bool("refs-on-stdin") {
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return errwrap.Wrapf("Failed to read from stdin: {{err}}", err)
+		}
+
+		refs = string(bytes)
+		//when `glass push` triggers the pre-push hook it will not
+		//provide any refs on stdin
+		//this probalby means means there is nothing left to push and
+		//we return here to prevent recursive push
+		if refs == "" {
+			return nil
+		}
+	}
+
 	vc, err := vcs.GetVCS(dir)
 	if err != nil {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
@@ -54,7 +79,8 @@ func (c *Push) Run(ctx *cli.Context) error {
 		remote = vc.DefaultRemote()
 	}
 
-	err = vc.Push(remote)
+	fmt.Printf("Pushing time-data to remote '%s'...\n", remote)
+	err = vc.Push(remote, refs)
 	if err != nil {
 		return errwrap.Wrapf("Failed to push time data: {{err}}", err)
 	}
