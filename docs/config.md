@@ -4,7 +4,8 @@ Timeglass can be configured by creating a `timeglass.json` file in the root of t
 ```json
 {
 	"mbu": "1m",
-	"commit_message": " [{{.}}]"
+	"commit_message": " [{{.}}]",
+	"auto_push": true
 }
 ```
 
@@ -19,3 +20,8 @@ __key__: `commit_message`
 This options allows you to specify how Timeglass should write spent time to commit messages. To disable this feature completely, provide an empty string, e.g: `"commit_message": ""`
 
 The template is parsed using the standard Go [text/templating](http://golang.org/pkg/text/template/), but you probably only need to know that `{{.}}` is replaced by a human readable representation of the measured time, e.g: `1h5m2s`
+
+## Automatically Push Time data
+__key__: `auto_push`
+
+Timeglass uses [git-notes](http://git-scm.com/docs/git-notes) for storing commit times, since git-notes uses a seperate branch for such data it needs to be explicitely pushed or else data is merely stored local and lost whenever the clone is removed. To prevent this, Timeglass installes a pre-push hook that automatically pushes time data to the same remote as the push itself. If you rather want full control over when to push time data using the `glass push` command, you can disable the automatic behaviour with this options: `"auto_push": false`
