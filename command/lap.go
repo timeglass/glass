@@ -28,7 +28,7 @@ func (c *Lap) Description() string {
 }
 
 func (c *Lap) Usage() string {
-	return "Punch time spent on last commit and reset the timer to 0s"
+	return "Register time spent on last commit and reset the timer to 0s"
 }
 
 func (c *Lap) Flags() []cli.Flag {

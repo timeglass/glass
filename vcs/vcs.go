@@ -10,6 +10,9 @@ type VCS interface {
 	Name() string
 	Supported() bool
 	Hook() error
+	Push(string) error
+	Fetch(string) error
+	DefaultRemote() string
 	Log(time.Duration) error
 }
 

@@ -28,7 +28,7 @@ func (c *Punch) Description() string {
 }
 
 func (c *Punch) Usage() string {
-	return "Manually enter time that was spent on the last commit"
+	return "Manually register time spent on the last commit"
 }
 
 func (c *Punch) Flags() []cli.Flag {

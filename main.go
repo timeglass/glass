@@ -37,6 +37,8 @@ func main() {
 		command.NewLap(),
 		command.NewPunch(),
 		command.NewStop(),
+		command.NewPush(),
+		command.NewPull(),
 	}
 
 	for _, c := range cmds {

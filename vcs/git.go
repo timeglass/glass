@@ -44,7 +44,8 @@ func NewGit(dir string) *Git {
 	}
 }
 
-func (g *Git) Name() string { return "git" }
+func (g *Git) DefaultRemote() string { return "origin" }
+func (g *Git) Name() string          { return "git" }
 func (g *Git) Supported() bool {
 	fi, err := os.Stat(g.dir)
 	if err != nil || !fi.IsDir() {
@@ -60,6 +61,34 @@ func (g *Git) Log(t time.Duration) error {
 	err := cmd.Run()
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to log time '%s' using git command %s: {{err}}", t, args), err)
+	}
+
+	return nil
+}
+
+func (g *Git) Fetch(remote string) error {
+	args := []string{"fetch", remote, fmt.Sprintf("refs/notes/%s:refs/notes/%s", TimeSpentNotesRef, TimeSpentNotesRef)}
+	cmd := exec.Command("git", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch from remote '%s' using git command %s: {{err}}", remote, args), err)
+	}
+
+	return nil
+}
+
+func (g *Git) Push(remote string) error {
+	args := []string{"push", remote, fmt.Sprintf("refs/notes/%s", TimeSpentNotesRef)}
+	cmd := exec.Command("git", args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to push to remote '%s' using git command %s: {{err}}", remote, args), err)
 	}
 
 	return nil
