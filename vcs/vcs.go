@@ -3,12 +3,14 @@ package vcs
 import (
 	"fmt"
 	"strings"
+	"time"
 )
 
 type VCS interface {
 	Name() string
 	Supported() bool
 	Hook() error
+	Log(time.Duration) error
 }
 
 func GetVCS(dir string) (VCS, error) {

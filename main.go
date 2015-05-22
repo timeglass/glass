@@ -35,6 +35,7 @@ func main() {
 		command.NewPause(),
 		command.NewStatus(),
 		command.NewLap(),
+		command.NewPunch(),
 		command.NewStop(),
 	}
 

@@ -3,11 +3,15 @@ package vcs
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"text/template"
+	"time"
 
 	"github.com/hashicorp/errwrap"
 )
+
+var TimeSpentNotesRef = "time-spent"
 
 var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # when checkout is a branch, start timer
@@ -48,6 +52,17 @@ func (g *Git) Supported() bool {
 	}
 
 	return true
+}
+
+func (g *Git) Log(t time.Duration) error {
+	args := []string{"notes", "--ref=" + TimeSpentNotesRef, "add", "-f", "-m", fmt.Sprintf("total=%s", t)}
+	cmd := exec.Command("git", args...)
+	err := cmd.Run()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to log time '%s' using git command %s: {{err}}", t, args), err)
+	}
+
+	return nil
 }
 
 func (g *Git) Hook() error {

@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/vcs"
 )
 
 type Lap struct {
@@ -23,11 +24,11 @@ func (c *Lap) Name() string {
 }
 
 func (c *Lap) Description() string {
-	return fmt.Sprintf("<description>")
+	return fmt.Sprintf("Resets the running timer, report spent time and punch as time spent on last commit")
 }
 
 func (c *Lap) Usage() string {
-	return "Show the measured time and reset the timer to 0s"
+	return "Punch time spent on last commit and reset the timer to 0s"
 }
 
 func (c *Lap) Flags() []cli.Flag {
@@ -50,6 +51,7 @@ func (c *Lap) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
 	}
 
+	//get time and reset
 	client := NewClient(info)
 	t, err := client.Lap()
 	if err != nil {
@@ -58,6 +60,17 @@ func (c *Lap) Run(ctx *cli.Context) error {
 		} else {
 			return err
 		}
+	}
+
+	//write the vcs
+	vc, err := vcs.GetVCS(dir)
+	if err != nil {
+		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
+	}
+
+	err = vc.Log(t)
+	if err != nil {
+		return errwrap.Wrapf("Failed to log time into VCS: {{err}}", err)
 	}
 
 	fmt.Println(t)
