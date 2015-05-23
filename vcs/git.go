@@ -17,6 +17,10 @@ import (
 
 var TimeSpentNotesRef = "time-spent"
 
+const (
+	TOTAL_PREFIX = "total="
+)
+
 var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # when checkout is a branch, start timer
 if [ $3 -eq 1 ]; then
@@ -64,51 +68,51 @@ func (g *Git) IsAvailable() bool {
 	return true
 }
 
-func (g *Git) ParseHistory() error {
-	args := []string{"--no-pager", "log", `--pretty=format:"REFS:%d|PARENTS:%P|NOTES:%N"`, "--show-notes=" + TimeSpentNotesRef}
+func (g *Git) Show(commit string) (time.Duration, error) {
+	args := []string{"notes", "--ref=" + TimeSpentNotesRef, "show", commit}
+	buff := bytes.NewBuffer(nil)
 	cmd := exec.Command("git", args...)
-
-	//query examples:
-	// git log --merges --format=oneline #list only merges
-	// git log --graph --oneline --decorate --date=relative --all #fancy graph of everything
-
-	//pipe command output to scanner
-	pr, pw := io.Pipe()
-	scanner := bufio.NewScanner(pr)
-	go func() {
-		for scanner.Scan() {
-			line := scanner.Text()
-
-			fmt.Println("line:", line)
-		}
-		if err := scanner.Err(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error scanning history with args '%s': %s", args, err)
-		}
-	}()
-
-	cmd.Stdout = pw
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = buff
 
 	err := cmd.Run()
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to execute git command %s: {{err}}", args), err)
+		return 0, errwrap.Wrapf(fmt.Sprintf("Failed to show time for commit '%s' using git args %s: {{err}}", commit, args), err)
 	}
 
-	return nil
+	//scan lines in note
+	scanner := bufio.NewScanner(buff)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		//@todo for now only read total line
+		if strings.HasPrefix(line, TOTAL_PREFIX) {
+			t, err := time.ParseDuration(line[len(TOTAL_PREFIX):])
+			if err != nil {
+				return 0, errwrap.Wrapf(fmt.Sprintf("Failed to parse time from line '%s': {{err}}"), err)
+			}
+
+			return t, nil
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return 0, errwrap.Wrapf(fmt.Sprintf("Failed to scan note for commit '%s': {{err}}"), err)
+	}
+
+	return 0, nil
 }
 
 func (g *Git) Persist(t time.Duration) error {
-	args := []string{"notes", "--ref=" + TimeSpentNotesRef, "add", "-f", "-m", fmt.Sprintf("total=%s", t)}
+	args := []string{"notes", "--ref=" + TimeSpentNotesRef, "add", "-f", "-m", fmt.Sprintf("%s%s", TOTAL_PREFIX, t)}
 	cmd := exec.Command("git", args...)
 	err := cmd.Run()
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to log time '%s' using git command %s: {{err}}", t, args), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to persist time '%s' using git command %s: {{err}}", t, args), err)
 	}
 
 	return nil
 }
 
-func (g *Git) Fetch(remote string) error {
+func (g *Git) Pull(remote string) error {
 	args := []string{"fetch", remote, fmt.Sprintf("refs/notes/%s:refs/notes/%s", TimeSpentNotesRef, TimeSpentNotesRef)}
 	cmd := exec.Command("git", args...)
 	buff := bytes.NewBuffer(nil)

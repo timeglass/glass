@@ -15,10 +15,10 @@ type VCS interface {
 	IsAvailable() bool
 	Hook() error
 	Push(string, string) error
-	Fetch(string) error
+	Pull(string) error
 	DefaultRemote() string
 	Persist(time.Duration) error
-	ParseHistory() error
+	Show(string) (time.Duration, error)
 }
 
 func GetVCS(dir string) (VCS, error) {

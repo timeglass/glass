@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/codegangsta/cli"
 	"github.com/hashicorp/errwrap"
+	"github.com/mattn/go-isatty"
 
 	"github.com/timeglass/glass/vcs"
 )
@@ -51,19 +53,24 @@ func (c *Sum) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	_ = vc
-
-	scanner := bufio.NewScanner(os.Stdin)
-	go func() {
+	var total time.Duration
+	if !isatty.IsTerminal(os.Stdin.Fd()) {
+		scanner := bufio.NewScanner(os.Stdin)
 		for scanner.Scan() {
 			line := scanner.Text()
 
-			fmt.Println("line:", line)
+			t, err := vc.Show(line)
+			if err != nil {
+				return errwrap.Wrapf(fmt.Sprintf("Failed to show time notes for '%s': {{err}}", line), err)
+			}
+
+			total += t
 		}
 		if err := scanner.Err(); err != nil {
 			fmt.Println(err)
 		}
-	}()
+	}
 
+	fmt.Println(total)
 	return nil
 }

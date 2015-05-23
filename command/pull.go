@@ -54,7 +54,7 @@ func (c *Pull) Run(ctx *cli.Context) error {
 		remote = vc.DefaultRemote()
 	}
 
-	err = vc.Fetch(remote)
+	err = vc.Pull(remote)
 	if err != nil {
 		if err == vcs.ErrNoRemoteTimeData {
 			fmt.Printf("Timeglass: remote '%s' has no time data (yet), nothing to pull\n", remote)
