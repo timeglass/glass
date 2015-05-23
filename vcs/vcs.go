@@ -18,6 +18,7 @@ type VCS interface {
 	Fetch(string) error
 	DefaultRemote() string
 	Persist(time.Duration) error
+	ParseHistory() error
 }
 
 func GetVCS(dir string) (VCS, error) {

@@ -1,6 +1,7 @@
 package vcs
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -61,6 +62,35 @@ func (g *Git) IsAvailable() bool {
 	}
 
 	return true
+}
+
+func (g *Git) ParseHistory() error {
+	args := []string{"--no-pager", "log", `--pretty=format:"__TG %N TG__"`, "--show-notes=" + TimeSpentNotesRef}
+	cmd := exec.Command("git", args...)
+
+	//pipe command output to scanner
+	pr, pw := io.Pipe()
+	scanner := bufio.NewScanner(pr)
+	go func() {
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			fmt.Println("line:", line)
+		}
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error scanning history with args '%s': %s", args, err)
+		}
+	}()
+
+	cmd.Stdout = pw
+	cmd.Stderr = os.Stderr
+
+	err := cmd.Run()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to execute git command %s: {{err}}", args), err)
+	}
+
+	return nil
 }
 
 func (g *Git) Persist(t time.Duration) error {

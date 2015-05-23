@@ -50,6 +50,10 @@ func (c *Log) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	_ = vc
+	err = vc.ParseHistory()
+	if err != nil {
+		return errwrap.Wrapf("Failed to parse VCS history: {{err}}", err)
+	}
+
 	return nil
 }

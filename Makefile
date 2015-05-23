@@ -28,6 +28,9 @@ run-cli-start: build-cli
 run-cli-status: build-cli
 	glass status
 
+run-cli-log: build-cli
+	glass log
+
 
 #1. build release binaries
 release:
