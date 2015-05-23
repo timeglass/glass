@@ -36,7 +36,7 @@ func main() {
 		command.NewStatus(),
 		command.NewLap(),
 		command.NewPunch(),
-		command.NewLog(),
+		command.NewSum(),
 		command.NewStop(),
 		command.NewPush(),
 		command.NewPull(),

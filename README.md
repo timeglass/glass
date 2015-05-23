@@ -49,10 +49,11 @@ __Currently Supported: (see roadmap)__
   git log -n 1
   ```
 
-## Documentation
-More documentation will be available in the future, for now we offer the following:
+## Whats Next?
+Now you know how to measure the time you are spending on each commit you might want to learn more about...
 
-- [Configuration Reference](/docs/config.md)
+- [Querying your time data](/docs/query.md)
+- [Configuring Timeglass](/docs/config.md)
 
 ## Roadmap, input welcome!
 

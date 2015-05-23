@@ -1,6 +1,7 @@
 package command
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -10,35 +11,35 @@ import (
 	"github.com/timeglass/glass/vcs"
 )
 
-type Log struct {
+type Sum struct {
 	*command
 }
 
-func NewLog() *Log {
-	return &Log{newCommand()}
+func NewSum() *Sum {
+	return &Sum{newCommand()}
 }
 
-func (c *Log) Name() string {
-	return "log"
+func (c *Sum) Name() string {
+	return "sum"
 }
 
-func (c *Log) Description() string {
+func (c *Sum) Description() string {
 	return fmt.Sprintf("<description>")
 }
 
-func (c *Log) Usage() string {
+func (c *Sum) Usage() string {
 	return "<usage>"
 }
 
-func (c *Log) Flags() []cli.Flag {
+func (c *Sum) Flags() []cli.Flag {
 	return []cli.Flag{}
 }
 
-func (c *Log) Action() func(ctx *cli.Context) {
+func (c *Sum) Action() func(ctx *cli.Context) {
 	return c.command.Action(c.Run)
 }
 
-func (c *Log) Run(ctx *cli.Context) error {
+func (c *Sum) Run(ctx *cli.Context) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
@@ -50,10 +51,19 @@ func (c *Log) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	err = vc.ParseHistory()
-	if err != nil {
-		return errwrap.Wrapf("Failed to parse VCS history: {{err}}", err)
-	}
+	_ = vc
+
+	scanner := bufio.NewScanner(os.Stdin)
+	go func() {
+		for scanner.Scan() {
+			line := scanner.Text()
+
+			fmt.Println("line:", line)
+		}
+		if err := scanner.Err(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 
 	return nil
 }

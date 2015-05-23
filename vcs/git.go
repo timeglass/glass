@@ -65,8 +65,12 @@ func (g *Git) IsAvailable() bool {
 }
 
 func (g *Git) ParseHistory() error {
-	args := []string{"--no-pager", "log", `--pretty=format:"__TG %N TG__"`, "--show-notes=" + TimeSpentNotesRef}
+	args := []string{"--no-pager", "log", `--pretty=format:"REFS:%d|PARENTS:%P|NOTES:%N"`, "--show-notes=" + TimeSpentNotesRef}
 	cmd := exec.Command("git", args...)
+
+	//query examples:
+	// git log --merges --format=oneline #list only merges
+	// git log --graph --oneline --decorate --date=relative --all #fancy graph of everything
 
 	//pipe command output to scanner
 	pr, pw := io.Pipe()
