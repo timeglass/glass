@@ -60,7 +60,7 @@ func (c *Punch) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	err = vc.Log(t)
+	err = vc.Persist(t)
 	if err != nil {
 		return errwrap.Wrapf("Failed to log time into VCS: {{err}}", err)
 	}

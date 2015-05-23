@@ -54,7 +54,7 @@ func NewGit(dir string) *Git {
 
 func (g *Git) DefaultRemote() string { return "origin" }
 func (g *Git) Name() string          { return "git" }
-func (g *Git) Supported() bool {
+func (g *Git) IsAvailable() bool {
 	fi, err := os.Stat(g.dir)
 	if err != nil || !fi.IsDir() {
 		return false
@@ -63,7 +63,7 @@ func (g *Git) Supported() bool {
 	return true
 }
 
-func (g *Git) Log(t time.Duration) error {
+func (g *Git) Persist(t time.Duration) error {
 	args := []string{"notes", "--ref=" + TimeSpentNotesRef, "add", "-f", "-m", fmt.Sprintf("total=%s", t)}
 	cmd := exec.Command("git", args...)
 	err := cmd.Run()
