@@ -1,5 +1,5 @@
 #Querying your Measurements
-_Timeglass_ attaches the time you spent as metadata to Git commits. This means you have the full power of Git at your disposal when it comes to querying for measurements. This also means that retrieving data will always consists of two steps: 
+_Timeglass_ attaches the time you spent as metadata to Git commits. This means you have the full power of Git at your disposal when it comes to querying. This also means that retrieving data will always consists of two steps: 
 
 1. First, select the work you're interested in by fetching a list of commit hashes (seperated by newlines) from Git using either `git rev-list` or `git log --prety=%H`.
 2. Second, pipe this list into `gass sum` to add all time entries together. It will output thet total time in a human readable format (e.g 1h59m10s)
