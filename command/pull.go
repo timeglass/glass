@@ -27,7 +27,7 @@ func (c *Pull) Description() string {
 }
 
 func (c *Pull) Usage() string {
-	return "Pull time data from the remote repository"
+	return "Pull measurements from a remote repository"
 }
 
 func (c *Pull) Flags() []cli.Flag {

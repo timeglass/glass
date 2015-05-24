@@ -29,7 +29,7 @@ func (c *Push) Description() string {
 }
 
 func (c *Push) Usage() string {
-	return "Push time data to the remote repository"
+	return "Push measurements to a remote repository"
 }
 
 func (c *Push) Flags() []cli.Flag {

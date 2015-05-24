@@ -24,7 +24,7 @@ func (c *Punch) Name() string {
 }
 
 func (c *Punch) Description() string {
-	return fmt.Sprintf("")
+	return fmt.Sprintf("Writes time to the metadata of the last commit, should be provided in the following format: 6h20m12s")
 }
 
 func (c *Punch) Usage() string {

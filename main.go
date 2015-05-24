@@ -34,12 +34,12 @@ func main() {
 		command.NewStart(),
 		command.NewPause(),
 		command.NewStatus(),
-		command.NewLap(),
-		command.NewPunch(),
-		command.NewSum(),
 		command.NewStop(),
 		command.NewPush(),
 		command.NewPull(),
+		command.NewLap(),
+		command.NewPunch(),
+		command.NewSum(),
 	}
 
 	for _, c := range cmds {

@@ -26,11 +26,11 @@ func (c *Sum) Name() string {
 }
 
 func (c *Sum) Description() string {
-	return fmt.Sprintf("<description>")
+	return fmt.Sprintf("Reads time data for a list of commits provided to the command over STDIN. It expects one commit per line and the can be specified in any format that the underlying VCS accepts (refs, hashes, short hashes etc)")
 }
 
 func (c *Sum) Usage() string {
-	return "<usage>"
+	return "Collect time measurements from a series of commits"
 }
 
 func (c *Sum) Flags() []cli.Flag {
