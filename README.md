@@ -8,9 +8,9 @@ __Features:__
 
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout`
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
-- The time you spent is automatically added to the next `git commit` message by default
+- The time you spent is automatically added to the next `git commit`
 - The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1m. 
-- Spent time is stored as commit metadata using [git-notes](git-scm.com/docs/git-notes) and pushed automatically to your remote by default
+- Spent time is stored as metadata using [git-notes](git-scm.com/docs/git-notes) pushed automatically to your remote
 
 
 __Currently Supported: (see roadmap)__
@@ -52,13 +52,12 @@ __Currently Supported: (see roadmap)__
 ## Whats Next?
 Now you know how to measure the time you are spending on each commit you might want to learn more about...
 
-- [Querying your time data](/docs/query.md)
-- [Configuring Timeglass](/docs/config.md)
+- [Querying your measurements](/docs/query.md)
+- [Configuring _Timeglass_](/docs/config.md)
+- [Sharing data with others](/docs/sharing.md)
 
 ## Roadmap, input welcome!
 
-- __Configuration:__ including configuring the minimal billable unit, ignoring certain directories and configuring the commit message. _What else would you like to configure? input welcome [here](https://github.com/Timeglass/glass/issues/7)_
-- __Querying:__ Having intimate knowledge of both the commits and the time it took to create them, opens up enormous potential for interesting data to be extracted. _What would you like to query for? Input welcome [here](https://github.com/Timeglass/glass/issues/9)_
 - __Supporting Other VCS:__ Timeglass currently only works for git repositories, mainly due to the number of hooks it provides. _What other version control systems would you like to see implemented? Input welcome [here](https://github.com/Timeglass/glass/issues/10)_
 - __Supporting other OSs:__ File monitoring is implemented differently across platforms. The current implementation uses FSEvents (OSX), let me know what other platforms you would like to see implemented [here](https://github.com/Timeglass/glass/issues/11)
 
