@@ -28,7 +28,7 @@ func (c *Lap) Description() string {
 }
 
 func (c *Lap) Usage() string {
-	return "Register time spent on last commit and reset the timer to 0s"
+	return "Register time spent on the last commit and reset the timer"
 }
 
 func (c *Lap) Flags() []cli.Flag {
@@ -78,7 +78,7 @@ func (c *Lap) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	err = vc.Log(t)
+	err = vc.Persist(t)
 	if err != nil {
 		return errwrap.Wrapf("Failed to log time into VCS: {{err}}", err)
 	}

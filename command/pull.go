@@ -27,7 +27,7 @@ func (c *Pull) Description() string {
 }
 
 func (c *Pull) Usage() string {
-	return "Pull time data from the remote repository"
+	return "Pull measurements from a remote repository"
 }
 
 func (c *Pull) Flags() []cli.Flag {
@@ -54,7 +54,7 @@ func (c *Pull) Run(ctx *cli.Context) error {
 		remote = vc.DefaultRemote()
 	}
 
-	err = vc.Fetch(remote)
+	err = vc.Pull(remote)
 	if err != nil {
 		if err == vcs.ErrNoRemoteTimeData {
 			fmt.Printf("Timeglass: remote '%s' has no time data (yet), nothing to pull\n", remote)

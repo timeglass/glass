@@ -24,7 +24,7 @@ func (c *Punch) Name() string {
 }
 
 func (c *Punch) Description() string {
-	return fmt.Sprintf("")
+	return fmt.Sprintf("Writes time to the metadata of the last commit, should be provided in the following format: 6h20m12s")
 }
 
 func (c *Punch) Usage() string {
@@ -60,7 +60,7 @@ func (c *Punch) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	err = vc.Log(t)
+	err = vc.Persist(t)
 	if err != nil {
 		return errwrap.Wrapf("Failed to log time into VCS: {{err}}", err)
 	}

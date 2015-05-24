@@ -9,15 +9,21 @@ import (
 
 var ErrNoRemoteTimeData = errors.New("Remote doesn't have any time data")
 var ErrNoLocalTimeData = errors.New("Local clone doesn't have any time data")
+var ErrNoCommitTimeData = errors.New("Commit doesn't have any time data")
 
 type VCS interface {
 	Name() string
-	Supported() bool
+	IsAvailable() bool
 	Hook() error
 	Push(string, string) error
-	Fetch(string) error
+	Pull(string) error
 	DefaultRemote() string
-	Log(time.Duration) error
+	Persist(time.Duration) error
+	Show(string) (TimeData, error)
+}
+
+type TimeData interface {
+	Total() time.Duration
 }
 
 func GetVCS(dir string) (VCS, error) {
@@ -27,7 +33,7 @@ func GetVCS(dir string) (VCS, error) {
 
 	var checked = []string{}
 	for _, vcs := range supported {
-		if vcs.Supported() {
+		if vcs.IsAvailable() {
 			return vcs, nil
 		}
 		checked = append(checked, vcs.Name())

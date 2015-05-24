@@ -8,6 +8,8 @@ Timeglass can be configured by creating a `timeglass.json` file in the root of t
 	"auto_push": true
 }
 ```
+Are you interested in configuring anything else? [let us know](https://github.com/Timeglass/glass/issues/7)
+
 
 ## MBU
 __key__: `mbu`  
