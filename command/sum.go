@@ -59,12 +59,17 @@ func (c *Sum) Run(ctx *cli.Context) error {
 		for scanner.Scan() {
 			line := scanner.Text()
 
-			t, err := vc.Show(line)
+			data, err := vc.Show(line)
 			if err != nil {
+				if err == vcs.ErrNoCommitTimeData {
+					//ignore if a commit has no time attached
+					continue
+				}
+
 				return errwrap.Wrapf(fmt.Sprintf("Failed to show time notes for '%s': {{err}}", line), err)
 			}
 
-			total += t
+			total += data.Total()
 		}
 		if err := scanner.Err(); err != nil {
 			fmt.Println(err)

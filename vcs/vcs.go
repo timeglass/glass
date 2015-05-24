@@ -9,6 +9,7 @@ import (
 
 var ErrNoRemoteTimeData = errors.New("Remote doesn't have any time data")
 var ErrNoLocalTimeData = errors.New("Local clone doesn't have any time data")
+var ErrNoCommitTimeData = errors.New("Commit doesn't have any time data")
 
 type VCS interface {
 	Name() string
@@ -18,7 +19,11 @@ type VCS interface {
 	Pull(string) error
 	DefaultRemote() string
 	Persist(time.Duration) error
-	Show(string) (time.Duration, error)
+	Show(string) (TimeData, error)
+}
+
+type TimeData interface {
+	Total() time.Duration
 }
 
 func GetVCS(dir string) (VCS, error) {

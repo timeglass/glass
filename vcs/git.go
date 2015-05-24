@@ -47,6 +47,12 @@ var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 glass push $1 --from-hook
 `))
 
+type gitTimeData struct {
+	total time.Duration
+}
+
+func (g *gitTimeData) Total() time.Duration { return g.total }
+
 type Git struct {
 	dir string
 }
@@ -68,19 +74,32 @@ func (g *Git) IsAvailable() bool {
 	return true
 }
 
-func (g *Git) Show(commit string) (time.Duration, error) {
+func (g *Git) Show(commit string) (TimeData, error) {
+	data := &gitTimeData{}
 	args := []string{"notes", "--ref=" + TimeSpentNotesRef, "show", commit}
-	buff := bytes.NewBuffer(nil)
+	outbuff := bytes.NewBuffer(nil)
+	errbuff := bytes.NewBuffer(nil)
 	cmd := exec.Command("git", args...)
-	cmd.Stdout = buff
+	cmd.Stdout = outbuff
+	cmd.Stderr = errbuff
 
 	err := cmd.Run()
+	if err != nil && strings.Contains(errbuff.String(), "No note found for object") {
+		return data, ErrNoCommitTimeData
+	}
+
+	//in other cases present user with git output
+	_, err2 := io.Copy(os.Stderr, errbuff)
+	if err2 != nil {
+		return data, err
+	}
+
 	if err != nil {
-		return 0, errwrap.Wrapf(fmt.Sprintf("Failed to show time for commit '%s' using git args %s: {{err}}", commit, args), err)
+		return data, errwrap.Wrapf(fmt.Sprintf("Failed to show time for commit '%s' using git args %s: {{err}}", commit, args), err)
 	}
 
 	//scan lines in note
-	scanner := bufio.NewScanner(buff)
+	scanner := bufio.NewScanner(outbuff)
 	for scanner.Scan() {
 		line := scanner.Text()
 
@@ -88,17 +107,17 @@ func (g *Git) Show(commit string) (time.Duration, error) {
 		if strings.HasPrefix(line, TOTAL_PREFIX) {
 			t, err := time.ParseDuration(line[len(TOTAL_PREFIX):])
 			if err != nil {
-				return 0, errwrap.Wrapf(fmt.Sprintf("Failed to parse time from line '%s': {{err}}"), err)
+				return data, errwrap.Wrapf(fmt.Sprintf("Failed to parse time from line '%s': {{err}}"), err)
 			}
 
-			return t, nil
+			data.total = t
 		}
 	}
 	if err := scanner.Err(); err != nil {
-		return 0, errwrap.Wrapf(fmt.Sprintf("Failed to scan note for commit '%s': {{err}}"), err)
+		return data, errwrap.Wrapf(fmt.Sprintf("Failed to scan note for commit '%s': {{err}}"), err)
 	}
 
-	return 0, nil
+	return data, nil
 }
 
 func (g *Git) Persist(t time.Duration) error {
