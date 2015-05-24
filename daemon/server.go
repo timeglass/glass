@@ -13,7 +13,7 @@ import (
 	"github.com/labstack/echo"
 )
 
-var CheckVersionURL = "https://s3-eu-west-1.amazonaws.com/timeglass/version/VERSION"
+var CheckVersionURL = "https://s3-eu-west-1.amazonaws.com/timeglass/version/VERSION?dversion=" + Version
 
 type Server struct {
 	timer             *Timer
