@@ -10,7 +10,7 @@ __Features:__
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
 - The time you spent is automatically added to the next `git commit`
 - The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1m. 
-- Spent time is stored as metadata using [git-notes](git-scm.com/docs/git-notes) and pushed automatically
+- Spent time is stored as metadata using [git-notes](https://git-scm.com/docs/git-notes) and pushed automatically
 
 
 __Currently Supported: (see roadmap)__
