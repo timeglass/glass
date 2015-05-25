@@ -70,3 +70,4 @@ Now you know how to measure the time you are spending on each commit, you might 
 in alphabetical order:
 
 - Kristof Vannotten ([kvannotten](https://github.com/kvannotten))
+- Michael Mior ([michaelmior](https://github.com/michaelmior))
