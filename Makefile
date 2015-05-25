@@ -7,9 +7,6 @@ build-hook: build-daemon build-cli
 
 build: build-daemon build-cli
 
-test:
-	go test ./...
-
 build-daemon:
 	go build -o $(GOPATH)/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./daemon 
 
@@ -31,6 +28,9 @@ run-cli-status: build-cli
 run-cli-log: build-cli
 	glass log
 
+#run all tests
+test:
+	go test ./...
 
 #1. build release binaries
 release:
