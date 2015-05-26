@@ -3,7 +3,7 @@ GOOS=`go env GOOS`
 GOARCH=`go env GOARCH`
 
 function run_build_daemon {
-	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./daemon 
+	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon 
 }
 
 function run_build_cli {
@@ -45,7 +45,9 @@ case $1 in
 	"release" ) run_release ;;
 
 	#
-	# following commands only be run on osx
+	# following commands are not portable
+	# and only work on osx with "github-release"
+	# "zip" and "shasum" installed and in PATH
 	# 
  	
  	# 1. zip all binaries
