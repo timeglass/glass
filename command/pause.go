@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/codegangsta/cli"
-	"github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
+	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/model"
 )

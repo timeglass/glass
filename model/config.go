@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 )
 
 type MBU time.Duration

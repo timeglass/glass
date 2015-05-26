@@ -10,6 +10,12 @@ function run_build_cli {
 	go build -o $GOPATH/bin/glass -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" .
 }
 
+function run_run_daemon {
+	run_build_daemon
+	glass-daemon -bind :10000
+}  
+
+
 function run_test {
 	echo "running all tests..."
 	go test ./...
@@ -43,6 +49,7 @@ case $1 in
     "test") run_test ;;
     "build" ) run_build ;;
 	"release" ) run_release ;;
+	"run-daemon" ) run_run_daemon ;;
 
 	#
 	# following commands are not portable

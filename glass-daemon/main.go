@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/model"
 	"github.com/timeglass/glass/watching"
@@ -34,7 +34,7 @@ func main() {
 	}
 
 	//check version without delaying start times
-	go svr.CheckVersion()
+	go svr.checkVersion()
 
 	dir, err := os.Getwd()
 	if err != nil {

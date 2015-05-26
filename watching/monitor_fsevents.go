@@ -5,9 +5,10 @@ package watching
 import (
 	"errors"
 	"fmt"
-	"github.com/ronbu/fsevents"
 	"path/filepath"
 	"time"
+
+	"github.com/timeglass/glass/_vendor/github.com/ronbu/fsevents"
 )
 
 type Monitor struct {

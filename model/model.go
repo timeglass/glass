@@ -9,8 +9,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/boltdb/bolt"
-	"github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/boltdb/bolt"
+	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 )
 
 type Model struct {

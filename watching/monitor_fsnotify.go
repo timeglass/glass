@@ -5,10 +5,11 @@ package watching
 import (
 	"errors"
 	"fmt"
-	"github.com/fsnotify/fsnotify"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/timeglass/glass/_vendor/github.com/go-fsnotify/fsnotify"
 )
 
 type Monitor struct {
