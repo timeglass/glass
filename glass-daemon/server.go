@@ -30,24 +30,24 @@ func (s *Server) stop(w http.ResponseWriter, r *http.Request) {
 	defer s.Stop()
 }
 
-func (s *Server) start(c *echo.Context) *echo.HTTPError {
+func (s *Server) start(c *echo.Context) error {
 	s.timer.Start()
 	return c.String(http.StatusOK, fmt.Sprintf("Started at: %s", s.timer.Time()))
 }
 
-func (s *Server) pause(c *echo.Context) *echo.HTTPError {
+func (s *Server) pause(c *echo.Context) error {
 	s.timer.Stop()
 	return c.String(http.StatusOK, fmt.Sprintf("Stopped at: %s", s.timer.Time()))
 }
 
-func (s *Server) lap(c *echo.Context) *echo.HTTPError {
+func (s *Server) lap(c *echo.Context) error {
 	defer s.timer.Reset()
 	return c.JSON(http.StatusOK, map[string]interface{}{
 		"Time": s.timer.Time().String(),
 	})
 }
 
-func (s *Server) status(c *echo.Context) *echo.HTTPError {
+func (s *Server) status(c *echo.Context) error {
 	data := map[string]interface{}{
 		"CurrentVersion":    Version,
 		"MostRecentVersion": s.mostRecentVersion,
@@ -60,7 +60,7 @@ func (s *Server) status(c *echo.Context) *echo.HTTPError {
 	return c.JSON(http.StatusOK, data)
 }
 
-func version(c *echo.Context) *echo.HTTPError {
+func version(c *echo.Context) error {
 	return c.String(http.StatusOK, fmt.Sprintf("Daemon %s (%s)", Version, Build))
 }
 

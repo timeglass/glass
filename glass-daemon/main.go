@@ -11,8 +11,8 @@ import (
 
 	"github.com/hashicorp/errwrap"
 
-	"github.com/timeglass/glass/daemon/watching"
 	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/watching"
 )
 
 var Version = "0.0.0"
