@@ -61,7 +61,7 @@ And ofcourse, you'll always have the options to uninstall:
 - [Uninstalling Timeglass](/docs/uninstall.md)
 
 ## Building from Source
-First, you'll need the go toolchain to be installed, instructions [here](https://golang.org/doc/install). With Go installed you can simply use `go get` for both binaries:
+First, you'll need install the go toolchain, instructions are [here](https://golang.org/doc/install). With Go installed you can simply run `go get` for _both_ binaries:
 
 ```
 go get -u github.com/timeglass/glass
