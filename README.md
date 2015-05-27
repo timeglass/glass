@@ -56,7 +56,7 @@ Now you know how to measure the time you are spending on each commit, you might 
 - [Configuring _Timeglass_](/docs/config.md)
 - [Sharing data with others](/docs/sharing.md)
 
-Ofcourse you'll always have the choice to uninstall:
+And ofcourse, you'll always have the options to uninstall:
 
 - [Uninstalling Timeglass](/docs/uninstall.md)
 
