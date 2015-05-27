@@ -56,6 +56,10 @@ Now you know how to measure the time you are spending on each commit, you might 
 - [Configuring _Timeglass_](/docs/config.md)
 - [Sharing data with others](/docs/sharing.md)
 
+Ofcourse you'll always have the choice to uninstall:
+
+- [Uninstalling Timeglass](/docs/uninstall.md)
+
 ## Roadmap, input welcome!
 
 - __Supporting Other VCS:__ Timeglass currently only works for git repositories, mainly due to the number of hooks it provides. _What other version control systems would you like to see implemented? Input welcome [here](https://github.com/Timeglass/glass/issues/10)_
