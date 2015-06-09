@@ -79,7 +79,7 @@ The source code will now be in your workspace and binaries are found in `$GOPATH
 
 - __Handling `git stash`:__ Git has the ability to stash work for a later commit prior to switching branches. Currently the timer unable to detect this; adding extra time to next commit. Input welcome [here](https://github.com/Timeglass/glass/issues/3)
 - __OS Restarts:__ Whenever the OS shuts down the repository might still contain uncommited work and a running timer, currently the timer is not restarted when this happens. _Input on how to achieve this is welcome [here](https://github.com/Timeglass/glass/issues/8)_
-
+- __Network Volumes:__ Projects that are kept on network volumes (e.g using NFS) are known to have flaky support for file monitoring, especially on Linux (using inotify). This means automatic unpausing of the timer when editing a file might be broken in such projects. *I'm looking for cases that experience such problem, or other information that might be of help over* [here](https://github.com/rjeczalik/notify/issues/81)
 
 ## Contributors
 in alphabetical order:

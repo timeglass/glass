@@ -1,9 +1,9 @@
-#! /bin/sh
+#! /bin/bash
 GOOS=`go env GOOS`
 GOARCH=`go env GOARCH`
 
 function run_build_daemon {
-	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon 
+	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon
 }
 
 function run_build_cli {
@@ -14,7 +14,6 @@ function run_run_daemon {
 	run_build_daemon
 	glass-daemon -bind :10000
 }  
-
 
 function run_test {
 	echo "running all tests..."
