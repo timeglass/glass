@@ -13,13 +13,16 @@ __Features:__
 - Spent time is stored as metadata using [git-notes](https://git-scm.com/docs/git-notes) and pushed automatically
 
 
-__Currently Supported: (see roadmap)__
+__Currently Supported:__
 
-- Platforms: __OSX__
+- Platforms: __OSX, Linux and Windows__
 - Version Control: __Git__
 
 ## Getting Started
-1. Download the [latest release](https://github.com/timeglass/glass/releases/latest) for your platform and unzip the contents into a directory that is in your systems PATH (e.g /usr/local/bin). 
+1. Download the [latest release](https://github.com/timeglass/glass/releases/latest) for your platform and unzip the contents into a directory that is in your systems PATH (e.g /usr/local/bin).   
+
+  _Note 1: We currently only support 64-bit prebuild binaries, for other architectures please build from source (see below)._  
+  _Note 2: For Windows, the documentation assumes you're using Git through a [bash-like CLI](https://msysgit.github.io/) but nothing about the implementation prevents you from using another approach._
 
 2. Use your terminal to navigate to the repository that contains the project you would like to track and install the hooks:
 
@@ -73,7 +76,6 @@ The source code will now be in your workspace and binaries are found in `$GOPATH
 ## Roadmap, input welcome!
 
 - __Supporting Other VCS:__ Timeglass currently only works for git repositories, mainly due to the number of hooks it provides. _What other version control systems would you like to see implemented? Input welcome [here](https://github.com/Timeglass/glass/issues/10)_
-- __Supporting other OSs:__ File monitoring is implemented differently across platforms. The current implementation uses FSEvents (OSX), let me know what other platforms you would like to see implemented [here](https://github.com/Timeglass/glass/issues/11)
 
 ## Known Issues
 
