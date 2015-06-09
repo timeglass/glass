@@ -8,13 +8,13 @@ Because querying Git can be a science in it own right we included some common pa
 
 ## How much time was spent on...
 
-##### ...on all commits since "yesterday"?
+##### ...all commits since "yesterday"?
 	git log --since="1 days ago" --pretty=%H | glass sum
 
-##### ...on all commits authored by "advanderveer" since "this morning"?
+##### ...all commits authored by "advanderveer" since "this morning"?
 	git log --author=advanderveer --since="9am" --pretty=%H | glass sum
 
-##### ...on all commits since "May 20"?
+##### ...all commits since "May 20"?
 	git log --since="may 20" --pretty=%H | glass sum
 
 ##### ...all commits up up to and including the current HEAD?
@@ -29,7 +29,7 @@ Because querying Git can be a science in it own right we included some common pa
 ##### ...commits in the current branch (given the current branch is not master)?
 	git rev-list master..HEAD | glass sum
 
-##### ...on commits of the branch that were merged in commit "d2192a058"
+##### ...commits of the branch that were merged in commit "d2192a058"
 	git rev-list d2192a058^..d2192a058 | glass sum
 
 NOTE: To show all merges that occured: `git log --merges --format=oneline`
