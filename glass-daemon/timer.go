@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/timeglass/glass/watching"
+	"github.com/timeglass/snow/monitor"
 )
 
 type Timer struct {
@@ -16,7 +16,7 @@ type Timer struct {
 	inc     chan chan time.Duration
 	reset   chan struct{}
 
-	Wakeup <-chan watching.DirEvent
+	Wakeup <-chan monitor.DirEvent
 	*sync.Mutex
 }
 
@@ -29,7 +29,7 @@ func NewTimer(mbu time.Duration, to time.Duration) *Timer {
 		inc:   make(chan chan time.Duration),
 		reset: make(chan struct{}),
 
-		Wakeup: make(chan watching.DirEvent),
+		Wakeup: make(chan monitor.DirEvent),
 		Mutex:  &sync.Mutex{},
 	}
 

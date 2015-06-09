@@ -1,9 +1,10 @@
-#! /bin/sh
+#! /bin/bash
 GOOS=`go env GOOS`
 GOARCH=`go env GOARCH`
+XGOARCH=$GOARCH
 
 function run_build_daemon {
-	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon 
+	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon
 }
 
 function run_build_cli {
@@ -14,7 +15,6 @@ function run_run_daemon {
 	run_build_daemon
 	glass-daemon -bind :10000
 }  
-
 
 function run_test {
 	echo "running all tests..."
@@ -30,7 +30,7 @@ function run_build {
 
 function run_release_prepare_dirs {
 	echo "creating release directories..."
-	rm -fr bin/*
+	rm -fr bin/${GOOS}*
 	mkdir -p bin/${GOOS}_${GOARCH}
 	cp $GOPATH/bin/glass-daemon bin/${GOOS}_${GOARCH}
 	cp $GOPATH/bin/glass bin/${GOOS}_${GOARCH}
@@ -48,15 +48,14 @@ echo "Detected Arch '$GOARCH'"
 case $1 in
     "test") run_test ;;
     "build" ) run_build ;;
-	"release" ) run_release ;;
 	"run-daemon" ) run_run_daemon ;;
+	"release" ) run_release ;;
 
 	#
 	# following commands are not portable
 	# and only work on osx with "github-release"
 	# "zip" and "shasum" installed and in PATH
-	# 
- 	
+
  	# 1. zip all binaries
  	"publish-1" )
 		rm -fr bin/dist

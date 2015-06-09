@@ -193,12 +193,13 @@ func (g *Git) Hook() error {
 	hpath := filepath.Join(g.dir, "hooks")
 
 	//post checkout: start()
-	postchf, err := os.Create(filepath.Join(hpath, "post-checkout"))
+	postchpath := filepath.Join(hpath, "post-checkout")
+	postchf, err := os.Create(postchpath)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = postchf.Chmod(0766)
+	err = os.Chmod(postchpath, 0766)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-checkout file '%s' executable: {{err}}", hpath), err)
 	}
@@ -209,12 +210,13 @@ func (g *Git) Hook() error {
 	}
 
 	//prepare commit msg: status()
-	prepcof, err := os.Create(filepath.Join(hpath, "prepare-commit-msg"))
+	prepcopath := filepath.Join(hpath, "prepare-commit-msg")
+	prepcof, err := os.Create(prepcopath)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create prepare-commit-msg  '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = prepcof.Chmod(0766)
+	err = os.Chmod(prepcopath, 0766)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to make prepare-commit-msg file '%s' executable: {{err}}", hpath), err)
 	}
@@ -225,12 +227,13 @@ func (g *Git) Hook() error {
 	}
 
 	//post commit: lap()
-	postcof, err := os.Create(filepath.Join(hpath, "post-commit"))
+	postcopath := filepath.Join(hpath, "post-commit")
+	postcof, err := os.Create(postcopath)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = postcof.Chmod(0766)
+	err = os.Chmod(postcopath, 0766)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-commit file '%s' executable: {{err}}", hpath), err)
 	}
@@ -241,12 +244,13 @@ func (g *Git) Hook() error {
 	}
 
 	//post receive: push()
-	prepushf, err := os.Create(filepath.Join(hpath, "pre-push"))
+	prepushpath := filepath.Join(hpath, "pre-push")
+	prepushf, err := os.Create(prepushpath)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create pre-push  '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = prepushf.Chmod(0766)
+	err = os.Chmod(prepushpath, 0766)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to make pre-push file '%s' executable: {{err}}", hpath), err)
 	}
