@@ -63,7 +63,9 @@ func (c *Start) Run(ctx *cli.Context) error {
 			return err
 		}
 
-		cmd := exec.Command("glass-daemon", fmt.Sprintf("--mbu=%s", conf.MBU))
+		//either the daemon broke/crashed or nothing is running at all, either way: use
+		//-force to make sure starting a new one succeeds
+		cmd := exec.Command("glass-daemon", "-force", fmt.Sprintf("--mbu=%s", conf.MBU))
 		err := cmd.Start()
 		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to start Daemon: {{err}}"), err)

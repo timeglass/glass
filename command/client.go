@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
@@ -35,8 +36,13 @@ func NewClient(info *model.Daemon) *Client {
 	}
 }
 
+func (c *Client) getHostAddr() string {
+	//fixes windows lack of support for [::]
+	return strings.Replace(c.info.Addr, "[::]", "localhost", 1)
+}
+
 func (c *Client) Call(method string) error {
-	resp, err := c.Get(fmt.Sprintf("http://%s/%s", c.info.Addr, method))
+	resp, err := c.Get(fmt.Sprintf("http://%s/%s", c.getHostAddr(), method))
 	if err != nil {
 		return ErrDaemonDown
 	} else if resp.StatusCode != 200 {
@@ -47,7 +53,7 @@ func (c *Client) Call(method string) error {
 }
 
 func (c *Client) Lap() (time.Duration, error) {
-	resp, err := c.Get(fmt.Sprintf("http://%s/timer.lap", c.info.Addr))
+	resp, err := c.Get(fmt.Sprintf("http://%s/timer.lap", c.getHostAddr()))
 	if err != nil {
 		return 0, ErrDaemonDown
 	} else if resp.StatusCode != 200 {
@@ -74,7 +80,7 @@ func (c *Client) Lap() (time.Duration, error) {
 }
 
 func (c *Client) GetStatus() (*StatusData, error) {
-	resp, err := c.Get(fmt.Sprintf("http://%s/timer.status", c.info.Addr))
+	resp, err := c.Get(fmt.Sprintf("http://%s/timer.status", c.getHostAddr()))
 	if err != nil {
 		return nil, ErrDaemonDown
 	} else if resp.StatusCode != 200 {

@@ -228,7 +228,7 @@ func (g *Git) Hook() error {
 
 	//post commit: lap()
 	postcopath := filepath.Join(hpath, "post-commit")
-	postcof, err := os.Create(postchpath)
+	postcof, err := os.Create(postcopath)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit '%s': {{err}}", postchf.Name()), err)
 	}
