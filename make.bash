@@ -72,7 +72,8 @@ case $1 in
 
 	# 2. checksum zips
 	"publish-2" )
-		cd bin/dist && shasum -a256 * > ./timeglass_`cat VERSION`_SHA256SUMS
+		rm bin/dist/*_SHA256SUMS
+		cd bin/dist && shasum -a256 * > ./timeglass_`cat ../../VERSION`_SHA256SUMS
 		;;
 
 	# 3. create tag and push it
@@ -92,22 +93,27 @@ case $1 in
  		
  	# 5. upload files
 	"publish-5" )
+		echo "Uploading zip files..."
 		for FOLDER in ./bin/*_* ; do \
 			NAME=`basename ${FOLDER}`_`cat VERSION` ; \
 			ARCHIVE=bin/dist/${NAME}.zip ; \
+			echo "  $ARCHIVE" ; \
 			github-release upload \
 		    --user timeglass \
 		    --repo glass \
 		    --tag v`cat VERSION` \
 		    --name ${NAME}.zip \
 		    --file ${ARCHIVE} ; \
-		done	
+		    echo "done!"; \
+		done
+		echo "Uploading shasums..."
 		github-release upload \
 		    --user timeglass \
 		    --repo glass \
 		    --tag v`cat` \
 		    --name timeglass_`cat VERSION`_SHA256SUMS \
 		    --file bin/dist/timeglass_`cat VERSION`_SHA256SUMS
+		echo "done!"
  		;;
 	*) run_test ;;
 esac
