@@ -12,7 +12,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/model"
-	"github.com/timeglass/glass/watching"
+	"github.com/timeglass/snow/monitor"
 )
 
 var Version = "0.0.0"
@@ -41,20 +41,19 @@ func main() {
 		log.Fatal(errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err))
 	}
 
-	monitor, err := watching.NewMonitor(dir)
+	monitor, err := monitor.New(dir, monitor.Recursive, time.Millisecond*50)
 	if err != nil {
 		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}"), err))
 	}
 
 	//whenever _something_ happends in any directory of the project delay timeout
-	timer.Wakeup = monitor.Events()
 	go func() {
 		for err := range monitor.Errors() {
 			log.Printf("Monitor Error: %s", err)
 		}
 	}()
 
-	err = monitor.Start()
+	timer.Wakeup, err = monitor.Start()
 	if err != nil {
 		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to start monitor for directory '%s': {{err}}"), err))
 	}
