@@ -89,6 +89,7 @@ case $1 in
 	    	--tag v`cat VERSION` \
 	    	--pre-release
  		;;
+ 		
  	# 5. upload files
 	"publish-5" )
 		for FOLDER in ./bin/*_* ; do \

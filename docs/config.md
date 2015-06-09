@@ -10,7 +10,6 @@ Timeglass can be configured by creating a `timeglass.json` file in the root of t
 ```
 Are you interested in configuring anything else? [let us know](https://github.com/Timeglass/glass/issues/7)
 
-
 ## MBU
 __key__: `mbu`  
 
@@ -30,7 +29,6 @@ The `.` represents a [time.Duration](http://golang.org/pkg/time/#Duration) struc
 will output commit messages like this:
 
 ```I did something [spent 0.1 hours]```
-
 
 ## Automatically Push Time data
 __key__: `auto_push`  

@@ -99,6 +99,8 @@ func (t *Timer) Start() {
 
 			//previous tick was the last mbu, don't
 			//increment this mbu
+			t.Lock()
+			defer t.Unlock()
 			if !t.ticking {
 				return
 			}
