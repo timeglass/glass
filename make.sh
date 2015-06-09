@@ -45,7 +45,7 @@ function run_xbuild {
 
 function run_release_prepare_dirs {
 	echo "creating release directories..."
-	rm -fr bin/*
+	rm -fr bin/${GOOS}*
 	mkdir -p bin/${GOOS}_${GOARCH}
 	cp $GOPATH/bin/glass-daemon bin/${GOOS}_${GOARCH}
 	cp $GOPATH/bin/glass bin/${GOOS}_${GOARCH}
