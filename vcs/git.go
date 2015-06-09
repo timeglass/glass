@@ -193,12 +193,13 @@ func (g *Git) Hook() error {
 	hpath := filepath.Join(g.dir, "hooks")
 
 	//post checkout: start()
-	postchf, err := os.Create(filepath.Join(hpath, "post-checkout"))
+	postchpath := filepath.Join(hpath, "post-checkout")
+	postchf, err := os.Create(postchpath)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout '%s': {{err}}", postchf.Name()), err)
 	}
 
-	err = postchf.Chmod(0766)
+	err = os.Chmod(postchpath, 0766)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-checkout file '%s' executable: {{err}}", hpath), err)
 	}
