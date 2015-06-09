@@ -46,13 +46,13 @@ func main() {
 		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}"), err))
 	}
 
-	//whenever _something_ happends in any directory of the project delay timeout
 	go func() {
 		for err := range monitor.Errors() {
 			log.Printf("Monitor Error: %s", err)
 		}
 	}()
 
+	//whenever _something_ happens in any directory, wakeup the timer
 	timer.Wakeup, err = monitor.Start()
 	if err != nil {
 		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to start monitor for directory '%s': {{err}}"), err))
