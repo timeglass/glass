@@ -25,6 +25,8 @@ var force = flag.Bool("force", false, "Force start the Daemon")
 func main() {
 	flag.Parse()
 
+	//@todo, ensure restart after reboot
+
 	//by default timeout is four times the mbu
 	//@todo make configurable
 	timer := NewTimer(*mbu, 4*(*mbu))
