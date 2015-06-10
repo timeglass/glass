@@ -97,14 +97,10 @@ func (t *Timer) Start() {
 			//wait for next mbu to arrive
 			<-time.After(t.mbu)
 
-			//previous tick was the last mbu, don't
-			//increment this mbu
-			t.Lock()
-			defer t.Unlock()
+			//previous tick was the last mbu
 			if !t.ticking {
 				return
 			}
-
 		}
 	}()
 }
