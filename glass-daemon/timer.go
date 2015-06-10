@@ -98,12 +98,9 @@ func (t *Timer) Start() {
 			<-time.After(t.mbu)
 
 			//previous tick was the last mbu
-			t.Lock()
-			defer t.Unlock()
 			if !t.ticking {
 				return
 			}
-
 		}
 	}()
 }
