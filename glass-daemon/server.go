@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/kardianos/service"
 )
 
 var CheckVersionURL = "https://s3-eu-west-1.amazonaws.com/timeglass/version/VERSION?dversion=" + Version
@@ -27,7 +28,7 @@ type Server struct {
 
 func (s *Server) stop(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Stopping Timer at: %s", s.timer.Time())
-	defer s.Stop()
+	defer s.Stop(nil)
 }
 
 func (s *Server) start(w http.ResponseWriter, r *http.Request) {
@@ -91,11 +92,16 @@ func (s *Server) Addr() string {
 	return s.listener.Addr().String()
 }
 
-func (s *Server) Stop() {
-	s.listener.Close()
+func (s *Server) Stop(svc service.Service) error {
+	return s.listener.Close()
 }
 
-func (s *Server) Start() error {
+func (s *Server) Start(svc service.Service) error {
+	go s.Run()
+	return nil
+}
+
+func (s *Server) Run() error {
 	s.timer.Start()
 	return s.Server.Serve(s.listener)
 }

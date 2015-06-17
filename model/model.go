@@ -27,6 +27,10 @@ func New(dir string) *Model {
 	}
 }
 
+func (m *Model) DirHash() string {
+	return m.repoDirHash
+}
+
 func (m *Model) Open() (*bolt.DB, error) {
 	u, err := user.Current()
 	if err != nil {
