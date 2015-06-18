@@ -51,7 +51,7 @@ func main() {
 	m := model.New(dir)
 	monitor, err := monitor.New(dir, monitor.Recursive, time.Millisecond*50)
 	if err != nil {
-		logger.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}"), err))
+		logger.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}", dir), err))
 	}
 
 	go func() {
