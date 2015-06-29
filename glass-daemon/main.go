@@ -2,30 +2,49 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"runtime"
-	"time"
 
-	// "github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 	"github.com/timeglass/glass/_vendor/github.com/kardianos/service"
 )
 
 var Version = "0.0.0"
 var Build = "gobuild"
 
-type daemon struct{}
+type daemon struct {
+	keeper *Keeper
+	server *Server
+}
 
-func (p *daemon) Start(s service.Service) error { go p.run(); return nil }
-func (p *daemon) Stop(s service.Service) error  { return nil }
-func (p *daemon) run() error {
+func (p *daemon) Start(s service.Service) error {
+	var err error
 
-	for {
-		<-time.After(time.Second)
-		log.Println("hello...")
+	p.keeper, err = NewKeeper()
+	if err != nil {
+		return errwrap.Wrapf("Failed to create time keeper: {{err}}", err)
 	}
 
+	bind := "127.0.0.1:3838"
+	p.server, err = NewServer(bind, p.keeper)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create server on '%s': {{err}}, is the service already running?", bind), err)
+	}
+
+	go p.keeper.Start()
+	go p.run()
 	return nil
+}
+
+func (p *daemon) Stop(s service.Service) error {
+	p.keeper.Stop()
+	return p.server.Stop()
+}
+
+func (p *daemon) run() error {
+	return p.server.Start()
 }
 
 func main() {
@@ -52,7 +71,8 @@ func main() {
 		conf.Option["UserService"] = true
 	}
 
-	s, err := service.New(&daemon{}, conf)
+	d := &daemon{}
+	s, err := service.New(d, conf)
 	if err != nil {
 		log.Fatal(err)
 	}

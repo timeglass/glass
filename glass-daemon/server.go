@@ -1,89 +1,51 @@
 package main
 
 import (
-	"bytes"
+	// "bytes"
 	"encoding/json"
 	"fmt"
-	"io"
+	// "io"
 	"log"
 	"net"
 	"net/http"
-	"strings"
+	// "strings"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
-	"github.com/timeglass/glass/_vendor/github.com/kardianos/service"
 )
 
-var CheckVersionURL = "https://s3-eu-west-1.amazonaws.com/timeglass/version/VERSION?dversion=" + Version
-
 type Server struct {
-	timer *Timer
-	httpb string
-
-	listener          net.Listener
-	mostRecentVersion string
+	keeper   *Keeper
+	httpb    string
+	listener net.Listener
 
 	*http.Server
 }
 
-func (s *Server) stop(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Stopping Timer at: %s", s.timer.Time())
-	defer s.Stop(nil)
-}
-
-func (s *Server) start(w http.ResponseWriter, r *http.Request) {
-	s.timer.Start()
-	fmt.Fprintf(w, "Started at: %s", s.timer.Time())
-}
-
-func (s *Server) pause(w http.ResponseWriter, r *http.Request) {
-	s.timer.Stop()
-	fmt.Fprintf(w, "Stopped at: %s", s.timer.Time())
-}
-
-func (s *Server) lap(w http.ResponseWriter, r *http.Request) {
-	defer s.timer.Reset()
-	s.Respond(w, map[string]interface{}{
-		"Time": s.timer.Time().String(),
-	})
-}
-
-func (s *Server) status(w http.ResponseWriter, r *http.Request) {
+func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"CurrentVersion":    Version,
-		"MostRecentVersion": s.mostRecentVersion,
-		"Time":              s.timer.Time().String(),
+		"build":       Build,
+		"version":     Version,
+		"time_keeper": s.keeper.Data(),
 	}
 
-	//check version without delaying response
-	go s.checkVersion()
 	s.Respond(w, data)
 }
 
-func version(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Daemon %s (%s)", Version, Build)
-}
-
-func NewServer(httpb string, timer *Timer) (*Server, error) {
+func NewServer(httpb string, keeper *Keeper) (*Server, error) {
 	l, err := net.Listen("tcp", httpb)
 	if err != nil {
 		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to create listener on '%s': {{err}}", httpb), err)
 	}
 
 	s := &Server{
-		timer:             timer,
-		httpb:             httpb,
-		listener:          l,
-		mostRecentVersion: Version,
-		Server:            &http.Server{Handler: http.DefaultServeMux},
+		keeper:   keeper,
+		httpb:    httpb,
+		listener: l,
+
+		Server: &http.Server{Handler: http.DefaultServeMux},
 	}
 
-	http.HandleFunc("/", version)
-	http.HandleFunc("/timer.status", s.status)
-	http.HandleFunc("/timer.pause", s.pause)
-	http.HandleFunc("/timer.lap", s.lap)
-	http.HandleFunc("/timer.start", s.start)
-	http.HandleFunc("/timer.stop", s.stop)
+	http.HandleFunc("/api/", s.api)
 
 	return s, nil
 }
@@ -92,17 +54,16 @@ func (s *Server) Addr() string {
 	return s.listener.Addr().String()
 }
 
-func (s *Server) Stop(svc service.Service) error {
+func (s *Server) Stop() error {
 	return s.listener.Close()
 }
 
-func (s *Server) Start(svc service.Service) error {
-	go s.Run()
-	return nil
-}
+func (s *Server) Start() error {
+	log.Printf("Started server on %s", s.Addr())
+	defer func() {
+		log.Printf("Stopped server on %s", s.Addr())
+	}()
 
-func (s *Server) Run() error {
-	s.timer.Start()
 	return s.Server.Serve(s.listener)
 }
 
@@ -114,19 +75,5 @@ func (s *Server) Respond(w http.ResponseWriter, data interface{}) {
 		enc.Encode(map[string]string{
 			"error": err.Error(),
 		})
-	}
-}
-
-func (s *Server) checkVersion() {
-	resp, err := http.Get(CheckVersionURL)
-	if err == nil {
-		defer resp.Body.Close()
-		buff := bytes.NewBuffer(nil)
-		_, err = io.Copy(buff, resp.Body)
-		if err != nil {
-			log.Printf("Failed to read response body for version check: %s", err)
-		} else {
-			s.mostRecentVersion = strings.TrimSpace(buff.String())
-		}
 	}
 }
