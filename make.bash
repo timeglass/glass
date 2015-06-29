@@ -24,7 +24,6 @@ function run_test {
 function run_build {
 	echo "building CLI..."
 	run_build_cli
-	echo "building Daemon..."
 	run_build_daemon
 }  
 
@@ -48,6 +47,7 @@ echo "Detected Arch '$GOARCH'"
 case $1 in
     "test") run_test ;;
     "build" ) run_build ;;
+	"build-daemon" ) run_build_daemon ;;
 	"run-daemon" ) run_run_daemon ;;
 	"release" ) run_release ;;
 
