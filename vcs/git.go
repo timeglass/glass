@@ -21,13 +21,6 @@ const (
 	TOTAL_PREFIX = "total="
 )
 
-var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-# when checkout is a branch, start timer
-if [ $3 -eq 1 ]; then
-   glass start;
-fi
-`))
-
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # only add time to template and message sources
 # @see http://git-scm.com/docs/githooks#_prepare_commit_msg
@@ -38,8 +31,9 @@ esac
 `))
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-#always reset after commit
-glass lap --from-hook
+#persist (punch) to newly created commit and reset the timer
+glass status -t "{{.}}" | glass punch
+glass reset
 `))
 
 var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
@@ -192,28 +186,11 @@ func (g *Git) Push(remote string, refs string) error {
 func (g *Git) Hook() error {
 	hpath := filepath.Join(g.dir, "hooks")
 
-	//post checkout: start()
-	postchpath := filepath.Join(hpath, "post-checkout")
-	postchf, err := os.Create(postchpath)
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout '%s': {{err}}", postchf.Name()), err)
-	}
-
-	err = os.Chmod(postchpath, 0766)
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-checkout file '%s' executable: {{err}}", hpath), err)
-	}
-
-	err = PostCheckoutTmpl.Execute(postchf, struct{}{})
-	if err != nil {
-		return errwrap.Wrapf("Failed to run post-checkout template: {{err}}", err)
-	}
-
 	//prepare commit msg: status()
 	prepcopath := filepath.Join(hpath, "prepare-commit-msg")
 	prepcof, err := os.Create(prepcopath)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create prepare-commit-msg  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create prepare-commit-msg  '%s': {{err}}", prepcof.Name()), err)
 	}
 
 	err = os.Chmod(prepcopath, 0766)
@@ -230,7 +207,7 @@ func (g *Git) Hook() error {
 	postcopath := filepath.Join(hpath, "post-commit")
 	postcof, err := os.Create(postcopath)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit '%s': {{err}}", postcof.Name()), err)
 	}
 
 	err = os.Chmod(postcopath, 0766)
@@ -247,7 +224,7 @@ func (g *Git) Hook() error {
 	prepushpath := filepath.Join(hpath, "pre-push")
 	prepushf, err := os.Create(prepushpath)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create pre-push  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create pre-push  '%s': {{err}}", prepushf.Name()), err)
 	}
 
 	err = os.Chmod(prepushpath, 0766)

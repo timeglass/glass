@@ -2,9 +2,11 @@ package command
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"time"
 
+	"github.com/mattn/go-isatty"
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
@@ -45,13 +47,26 @@ func (c *Punch) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	if ctx.Args().First() == "" {
+	var input string
+	if isatty.IsTerminal(os.Stdin.Fd()) {
+		c.Println("Reading input from argument...")
+		input = ctx.Args().First()
+	} else {
+		c.Println("Reading input from Stdin...")
+		bytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return errwrap.Wrapf("Failed to read time from Stdin: {{err}}", err)
+		}
+		input = string(bytes)
+	}
+
+	if input == "" {
 		return fmt.Errorf("Please provide the time you spent as the first argument")
 	}
 
-	t, err := time.ParseDuration(ctx.Args().First())
+	t, err := time.ParseDuration(input)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to parse provided argument '%s' as a valid duration (e.g 1h2m10s): {{err}}", ctx.Args().First()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to parse provided argument '%s' as a valid duration (e.g 1h2m10s): {{err}}", input), err)
 	}
 
 	//write the vcs
@@ -60,10 +75,12 @@ func (c *Punch) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
+	c.Printf("Persisting %s to version control...", t)
 	err = vc.Persist(t)
 	if err != nil {
 		return errwrap.Wrapf("Failed to log time into VCS: {{err}}", err)
 	}
 
+	c.Println("Done!")
 	return nil
 }
