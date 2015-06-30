@@ -26,6 +26,7 @@ type Timer struct {
 	stopto    chan struct{}
 	stoptick  chan struct{}
 	reset     chan struct{}
+	pause     chan struct{}
 }
 
 func NewTimer(dir string) (*Timer, error) {
@@ -48,6 +49,7 @@ func (t *Timer) Start() error {
 	t.stopto = make(chan struct{})
 	t.stoptick = make(chan struct{})
 	t.reset = make(chan struct{})
+	t.pause = make(chan struct{})
 	if t.monitor == nil {
 		t.monitor, err = monitor.New(t.Dir(), monitor.Recursive, t.timerData.Latency)
 		if err != nil {
@@ -60,15 +62,19 @@ func (t *Timer) Start() error {
 		return errwrap.Wrapf("Failed to start monitor: {{err}}", err)
 	}
 
-	//handle timeouts and wakeups
+	//handle pause, timeouts and wakeups
 	log.Printf("Timer for project '%s' was started (and unpaused) explicitely", t.Dir())
 	t.timerData.Paused = false
 	go func() {
 		defer close(t.stopto)
 		defer close(wakup)
+		defer close(t.pause)
 
 		for {
 			select {
+			case <-t.pause:
+				log.Printf("Timer for project '%s' was paused explicitely", t.Dir())
+				t.timerData.Paused = true
 			case <-t.stopto:
 				log.Printf("Timer for project '%s' was stopped (and paused) explicitely", t.Dir())
 				t.timerData.Paused = true
@@ -111,6 +117,10 @@ func (t *Timer) Start() error {
 	}()
 
 	return nil
+}
+
+func (t *Timer) Pause() {
+	t.pause <- struct{}{}
 }
 
 func (t *Timer) Reset() {

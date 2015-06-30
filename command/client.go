@@ -85,6 +85,18 @@ func (c *Client) ResetTimer(dir string) error {
 	return nil
 }
 
+func (c *Client) PauseTimer(dir string) error {
+	params := url.Values{}
+	params.Set("dir", dir)
+
+	_, err := c.Call("timers.pause", params)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.pause' with '%s': {{err}}", dir), err)
+	}
+
+	return nil
+}
+
 func (c *Client) ReadTimer(dir string) (*daemon.Timer, error) {
 	timers := []*daemon.Timer{}
 	params := url.Values{}

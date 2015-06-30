@@ -61,6 +61,12 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch timer: {{err}}"), err)
 	}
 
+	if timer.IsPaused() {
+		c.Printf("Timer is currently: PAUSED")
+	} else {
+		c.Printf("Timer is currently: RUNNING")
+	}
+
 	tmpls := ctx.String("template")
 	if tmpls == "" {
 		tmpls = conf.CommitMessage
