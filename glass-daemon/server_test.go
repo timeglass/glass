@@ -42,7 +42,7 @@ func TestCreateRemoveTimer(t *testing.T) {
 	assert.NoError(t, err)
 
 	params := &url.Values{
-		"conf": []string{dir},
+		"dir": []string{dir},
 	}
 
 	r, err := http.NewRequest("GET", "/api/timers.create?"+params.Encode(), nil)

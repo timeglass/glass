@@ -28,12 +28,12 @@ func (s *Server) timersDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if confs, ok := r.Form["conf"]; !ok {
-		s.Respond(w, fmt.Errorf("conf parameter is mandatory"))
+	if dirs, ok := r.Form["dir"]; !ok {
+		s.Respond(w, fmt.Errorf("dir parameter is mandatory"))
 		return
 	} else {
-		for _, confPath := range confs {
-			err := s.keeper.Remove(confPath)
+		for _, dir := range dirs {
+			err := s.keeper.Remove(dir)
 			if err != nil {
 				s.Respond(w, errwrap.Wrapf("Failed to remove timer: {{err}}", err))
 				return
@@ -51,12 +51,12 @@ func (s *Server) timersCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if confs, ok := r.Form["conf"]; !ok {
-		s.Respond(w, fmt.Errorf("conf parameter is mandatory"))
+	if dirs, ok := r.Form["dir"]; !ok {
+		s.Respond(w, fmt.Errorf("dir parameter is mandatory"))
 		return
 	} else {
-		for _, confPath := range confs {
-			t, err := NewTimer(confPath)
+		for _, dir := range dirs {
+			t, err := NewTimer(dir)
 			if err != nil {
 				s.Respond(w, errwrap.Wrapf("Failed to create new timer: {{err}}", err))
 				return

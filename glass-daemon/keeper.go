@@ -106,6 +106,17 @@ func (k *Keeper) Load() error {
 		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to decode JSON in '%s': {{err}}", k.ledgerPath), err)
 		}
+
+		//immediately restart if not paused
+		for _, t := range k.keeperData.Timers {
+			if !t.IsPaused() {
+				err := t.Start()
+				if err != nil {
+					return errwrap.Wrapf(fmt.Sprintf("Failed to start timer for '%s' after loaded from ledger", t.Dir()), err)
+				}
+			}
+		}
+
 	}
 
 	return nil

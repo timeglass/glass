@@ -71,8 +71,12 @@ func (t *Timer) Start() error {
 				log.Printf("Timer for project '%s' timed out after %s", t.Dir(), t.timerData.Timeout)
 				t.timerData.Paused = true
 			case ev := <-wakup:
-				log.Printf("Timer for project '%s' woke up after some activity in '%s'", t.Dir(), ev.Dir())
-				t.timerData.Paused = false
+				if t.IsPaused() {
+					log.Printf("Timer for project '%s' woke up after some activity in '%s'", t.Dir(), ev.Dir())
+					t.timerData.Paused = false
+				} else {
+					log.Printf("Timer saw activity for project '%s' in '%s' but is already unpaused", t.Dir(), ev.Dir())
+				}
 			}
 		}
 	}()

@@ -1,100 +1,62 @@
 package command
 
 import (
-	"encoding/json"
-	"errors"
+	"bytes"
+	// "encoding/json"
+	// "errors"
 	"fmt"
+	"io"
 	"net/http"
-	"strings"
+	"net/url"
+	// "strings"
 	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
-
-	"github.com/timeglass/glass/model"
 )
 
-var ErrDaemonDown = errors.New("Daemon doesn't appears to be running.")
-
 type Client struct {
-	info *model.Daemon
-
+	endpoint string
 	*http.Client
 }
 
-type StatusData struct {
-	Time              string
-	MostRecentVersion string
-	CurrentVersion    string
-}
-
-func NewClient(info *model.Daemon) *Client {
+func NewClient() *Client {
 	return &Client{
-		info: info,
+		endpoint: "http://127.0.0.1:3838",
 		Client: &http.Client{
 			Timeout: time.Duration(400 * time.Millisecond),
 		},
 	}
 }
 
-func (c *Client) getHostAddr() string {
-	//fixes windows lack of support for [::]
-	return strings.Replace(c.info.Addr, "[::]", "localhost", 1)
+func (c *Client) Call(method string, params url.Values) ([]byte, error) {
+	loc := fmt.Sprintf("%s/api/%s?%s", c.endpoint, method, params.Encode())
+	resp, err := c.Get(loc)
+	if err != nil {
+		return []byte{}, errwrap.Wrapf(fmt.Sprintf("Failed to GET %s: {{err}}", loc), err)
+	}
+
+	body := bytes.NewBuffer(nil)
+	defer resp.Body.Close()
+	_, err = io.Copy(body, resp.Body)
+	if err != nil {
+		return body.Bytes(), errwrap.Wrapf(fmt.Sprintf("Failed to buffer response body: {{err}}"), err)
+	}
+
+	if resp.StatusCode > 299 {
+		return body.Bytes(), fmt.Errorf("Unexpected StatusCode returned from Deamon: '%d', body: '%s'", resp.StatusCode, body.String())
+	}
+
+	return body.Bytes(), nil
 }
 
-func (c *Client) Call(method string) error {
-	resp, err := c.Get(fmt.Sprintf("http://%s/%s", c.getHostAddr(), method))
+func (c *Client) CreateTimer(dir string) error {
+	params := url.Values{}
+	params.Set("dir", dir)
+
+	_, err := c.Call("timers.create", params)
 	if err != nil {
-		return ErrDaemonDown
-	} else if resp.StatusCode != 200 {
-		return fmt.Errorf("Unexpected StatusCode from Daemon: %d", resp.StatusCode)
+		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.create' with '%s': {{err}}", dir), err)
 	}
 
 	return nil
-}
-
-func (c *Client) Lap() (time.Duration, error) {
-	resp, err := c.Get(fmt.Sprintf("http://%s/timer.lap", c.getHostAddr()))
-	if err != nil {
-		return 0, ErrDaemonDown
-	} else if resp.StatusCode != 200 {
-		return 0, fmt.Errorf("Unexpected StatusCode from Daemon: %d", resp.StatusCode)
-	}
-
-	dec := json.NewDecoder(resp.Body)
-	defer resp.Body.Close()
-	status := struct {
-		Time string
-	}{}
-
-	err = dec.Decode(&status)
-	if err != nil {
-		return 0, errwrap.Wrapf("Failed to decode json response: {{err}}", err)
-	}
-
-	d, err := time.ParseDuration(status.Time)
-	if err != nil {
-		return 0, errwrap.Wrapf(fmt.Sprintf("Failed to parse '%s' as a time duration: {{err}}", status.Time), err)
-	}
-
-	return d, nil
-}
-
-func (c *Client) GetStatus() (*StatusData, error) {
-	resp, err := c.Get(fmt.Sprintf("http://%s/timer.status", c.getHostAddr()))
-	if err != nil {
-		return nil, ErrDaemonDown
-	} else if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("Unexpected StatusCode from Daemon: %d", resp.StatusCode)
-	}
-
-	dec := json.NewDecoder(resp.Body)
-	defer resp.Body.Close()
-	status := &StatusData{}
-
-	err = dec.Decode(&status)
-	if err != nil {
-		return status, errwrap.Wrapf("Failed to decode json response: {{err}}", err)
-	}
-
-	return status, nil
 }

@@ -32,13 +32,13 @@ func main() {
 	cmds := []Command{
 		command.NewInstall(),
 		command.NewInit(),
-		command.NewStart(),
-		command.NewPause(),
-		command.NewStatus(),
-		command.NewStop(),
+		// command.NewStart(),
+		// command.NewPause(),
+		// command.NewStatus(),
+		// command.NewStop(),
 		command.NewPush(),
 		command.NewPull(),
-		command.NewLap(),
+		// command.NewLap(),
 		command.NewPunch(),
 		command.NewSum(),
 	}

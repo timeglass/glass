@@ -4,10 +4,12 @@ GOARCH=`go env GOARCH`
 XGOARCH=$GOARCH
 
 function run_build_daemon {
+	echo "building Daemon..."
 	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon
 }
 
 function run_build_cli {
+	echo "building CLI..."
 	go build -o $GOPATH/bin/glass -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" .
 }
 
@@ -21,8 +23,7 @@ function run_test {
 	go test ./...
 }  
 
-function run_build {
-	echo "building CLI..."
+function run_build {	
 	run_build_cli
 	run_build_daemon
 }  
