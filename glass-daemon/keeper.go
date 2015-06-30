@@ -54,6 +54,14 @@ func (k *Keeper) Add(t *Timer) error {
 	return fmt.Errorf("A timer already exists for '%s'", t.Dir())
 }
 
+func (k *Keeper) Get(dir string) (*Timer, error) {
+	if t, ok := k.keeperData.Timers[dir]; ok {
+		return t, nil
+	}
+
+	return nil, fmt.Errorf("No known timer for '%s'", dir)
+}
+
 func (k *Keeper) Remove(dir string) error {
 	if t, ok := k.keeperData.Timers[dir]; ok {
 		delete(k.keeperData.Timers, dir)

@@ -36,8 +36,8 @@ func main() {
 		// command.NewPause(),
 		// command.NewStatus(),
 		command.NewStop(), //remove timer for current directory
-		command.NewPush(),
-		command.NewPull(),
+		command.NewPush(), //push notes branch to remote
+		command.NewPull(), //pull notes branch from remote
 		// command.NewLap(),
 		command.NewPunch(),
 		command.NewSum(),
