@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	// "strings"
-	"time"
+	// "time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 )
@@ -22,9 +22,7 @@ type Client struct {
 func NewClient() *Client {
 	return &Client{
 		endpoint: "http://127.0.0.1:3838",
-		Client: &http.Client{
-			Timeout: time.Duration(400 * time.Millisecond),
-		},
+		Client:   &http.Client{},
 	}
 }
 
@@ -56,6 +54,18 @@ func (c *Client) CreateTimer(dir string) error {
 	_, err := c.Call("timers.create", params)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.create' with '%s': {{err}}", dir), err)
+	}
+
+	return nil
+}
+
+func (c *Client) DeleteTimer(dir string) error {
+	params := url.Values{}
+	params.Set("dir", dir)
+
+	_, err := c.Call("timers.delete", params)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.delete' with '%s': {{err}}", dir), err)
 	}
 
 	return nil

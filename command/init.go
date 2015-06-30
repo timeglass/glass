@@ -56,14 +56,10 @@ func (c *Init) Run(ctx *cli.Context) error {
 	}
 
 	fmt.Println("Hooks written!")
-	fmt.Println("Create timer...")
-
-	client := NewClient()
-	err = client.CreateTimer(dir)
+	err = NewStart().Run(ctx)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create timer: {{err}}"), err)
+		return err
 	}
 
-	fmt.Println("Timer created!")
 	return NewPull().Run(ctx)
 }

@@ -30,12 +30,12 @@ func main() {
 	app.Version = fmt.Sprintf("%s (%s)", Version, Build)
 
 	cmds := []Command{
-		command.NewInstall(),
-		command.NewInit(),
-		// command.NewStart(),
+		command.NewInstall(), //install daemon as a service on various platforms
+		command.NewInit(),    //write hooks, create timer and pull time data
+		command.NewStart(),   //create timer for current directory
 		// command.NewPause(),
 		// command.NewStatus(),
-		// command.NewStop(),
+		command.NewStop(), //remove timer for current directory
 		command.NewPush(),
 		command.NewPull(),
 		// command.NewLap(),
