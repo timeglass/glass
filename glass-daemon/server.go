@@ -23,9 +23,9 @@ type Server struct {
 
 func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"build":       Build,
-		"version":     Version,
-		"time_keeper": s.keeper.Data(),
+		"build":   Build,
+		"version": Version,
+		"keeper":  s.keeper,
 	}
 
 	s.Respond(w, data)

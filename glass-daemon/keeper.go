@@ -9,11 +9,7 @@ import (
 	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
-
-	"github.com/timeglass/glass/model"
 )
-
-type Timer struct{}
 
 type Keeper struct {
 	ledgerPath string
@@ -23,30 +19,40 @@ type Keeper struct {
 }
 
 type keeperData struct {
-	TickRate time.Duration    `json:"tick_rate"`
-	Timers   map[string]Timer `json:"timers,omitempty"`
+	TickRate time.Duration     `json:"tick_rate"`
+	Timers   map[string]*Timer `json:"timers,omitempty"`
 }
 
-func NewKeeper() (*Keeper, error) {
+func NewKeeper(path string) (*Keeper, error) {
 	k := &Keeper{
 		stop: make(chan struct{}),
 		keeperData: &keeperData{
+			Timers:   map[string]*Timer{},
 			TickRate: time.Second * 10,
 		},
 	}
 
-	p, err := model.SystemTimeglassPathCreateIfNotExist()
-	if err != nil {
-		return nil, errwrap.Wrapf("Failed to find Timeglass system path: {{err}}", err)
-	}
-
 	//attempt to open json file, if it exsts
-	k.ledgerPath = filepath.Join(p, "ledger.json")
+	k.ledgerPath = filepath.Join(path, "ledger.json")
 	return k, k.Load()
 }
 
-func (k *Keeper) Data() *keeperData {
-	return k.keeperData
+func (k *Keeper) UnmarshalJSON(b []byte) error {
+	return json.Unmarshal(b, &k.keeperData)
+}
+
+func (k *Keeper) MarshalJSON() ([]byte, error) {
+	return json.Marshal(k.keeperData)
+}
+
+func (k *Keeper) Add(p *Timer) error {
+	k.keeperData.Timers[p.ConfPath()] = p
+	return p.Start()
+}
+
+func (k *Keeper) Remove(p *Timer) error {
+	delete(k.keeperData.Timers, p.ConfPath())
+	return p.Stop()
 }
 
 func (k *Keeper) Stop() {
@@ -59,23 +65,22 @@ func (k *Keeper) Start() {
 		log.Printf("Stopped time keeper on %s", time.Now())
 	}()
 
+	//@todo, start ech timer?
+
 	for {
-		select {
-		case <-k.stop:
-			return
 
-		case <-time.After(k.TickRate()):
-			log.Printf("Tick on %s", time.Now())
-			err := k.Load()
-			if err != nil {
-				log.Printf("Error while loading from ledger: %s", err)
-			}
-
-		}
-
+		//save state
 		err := k.Save()
 		if err != nil {
 			log.Printf("Error while saving to ledger: %s", err)
+		}
+
+		//stop or wait for next tick
+		select {
+		case <-k.stop:
+			//@todo, stop each timers?
+			return
+		case <-time.After(k.TickRate()):
 		}
 	}
 }
@@ -93,9 +98,9 @@ func (k *Keeper) Load() error {
 	} else {
 		defer f.Close()
 		dec := json.NewDecoder(f)
-		err := dec.Decode(k.keeperData)
+		err := dec.Decode(k)
 		if err != nil {
-			return errwrap.Wrapf(fmt.Sprintf("Failed to decode JSOn in '%s': {{err}}", k.ledgerPath), err)
+			return errwrap.Wrapf(fmt.Sprintf("Failed to decode JSON in '%s': {{err}}", k.ledgerPath), err)
 		}
 	}
 
@@ -110,7 +115,7 @@ func (k *Keeper) Save() error {
 	defer f.Close()
 
 	enc := json.NewEncoder(f)
-	err = enc.Encode(k.keeperData)
+	err = enc.Encode(k)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Error saving ledger to '%s': {{err}}", k.ledgerPath), err)
 	}
