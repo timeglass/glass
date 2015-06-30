@@ -45,18 +45,18 @@ func (k *Keeper) MarshalJSON() ([]byte, error) {
 	return json.Marshal(k.keeperData)
 }
 
-func (k *Keeper) Add(p *Timer) error {
-	k.keeperData.Timers[p.ConfPath()] = p
-	return p.Start()
+func (k *Keeper) Add(t *Timer) error {
+	k.keeperData.Timers[t.Dir()] = t
+	return t.Start()
 }
 
-func (k *Keeper) Remove(confPath string) error {
-	if p, ok := k.keeperData.Timers[confPath]; ok {
-		delete(k.keeperData.Timers, confPath)
-		return p.Stop()
+func (k *Keeper) Remove(dir string) error {
+	if t, ok := k.keeperData.Timers[dir]; ok {
+		delete(k.keeperData.Timers, dir)
+		return t.Stop()
 	}
 
-	return fmt.Errorf("No known timer for '%s'", confPath)
+	return fmt.Errorf("No known timer for '%s'", dir)
 }
 
 func (k *Keeper) Stop() {

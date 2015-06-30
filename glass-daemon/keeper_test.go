@@ -53,35 +53,34 @@ func TestAddRemoveTimer(t *testing.T) {
 	assert.NoError(t, err)
 
 	pdir := filepath.Join(dir, "project_x")
-	pconfp := filepath.Join(pdir, "timeglass.json")
 	err = os.Mkdir(pdir, 0755)
 	assert.NoError(t, err)
 
 	k, err := NewKeeper(dir)
 	assert.NoError(t, err)
 
-	p, err := NewTimer(pconfp)
+	timer, err := NewTimer(pdir)
 	assert.NoError(t, err)
 
-	err = k.Add(p)
+	err = k.Add(timer)
 	assert.NoError(t, err)
-	assert.False(t, p.IsPaused())
+	assert.False(t, timer.IsPaused())
 
 	k.Save()
 	data, err := ioutil.ReadFile(filepath.Join(dir, "ledger.json"))
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), "/timeglass.json")
+	assert.Contains(t, string(data), "latency")
 
-	err = k.Remove(p.ConfPath())
+	err = k.Remove(timer.Dir())
 	assert.NoError(t, err)
 
 	k.Save()
 	data, err = ioutil.ReadFile(filepath.Join(dir, "ledger.json"))
 	assert.NoError(t, err)
-	assert.NotContains(t, string(data), "/timeglass.json")
-	assert.True(t, p.IsPaused())
+	assert.NotContains(t, string(data), "latency")
+	assert.True(t, timer.IsPaused())
 
-	err = k.Add(p)
+	err = k.Add(timer)
 	assert.NoError(t, err)
-	assert.False(t, p.IsPaused())
+	assert.False(t, timer.IsPaused())
 }

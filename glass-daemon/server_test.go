@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -43,7 +42,7 @@ func TestCreateRemoveTimer(t *testing.T) {
 	assert.NoError(t, err)
 
 	params := &url.Values{
-		"conf": []string{filepath.Join(dir, "timeglass.json")},
+		"conf": []string{dir},
 	}
 
 	r, err := http.NewRequest("GET", "/api/timers.create?"+params.Encode(), nil)

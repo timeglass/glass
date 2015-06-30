@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"path/filepath"
 	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
@@ -13,12 +12,12 @@ import (
 )
 
 type timerData struct {
-	paused   bool          `json:"paused"`
-	confPath string        `json:"conf_path"`
-	latency  time.Duration `json:"latency"`
-	timeout  time.Duration `json:"timeout"`
-	mbu      time.Duration `json:"mbu"`
-	time     time.Duration `json:"time"`
+	Paused  bool          `json:"paused"`
+	Dir     string        `json:"conf_path"`
+	Latency time.Duration `json:"latency"`
+	Timeout time.Duration `json:"timeout"`
+	MBU     time.Duration `json:"mbu"`
+	Time    time.Duration `json:"time"`
 }
 
 type Timer struct {
@@ -27,54 +26,53 @@ type Timer struct {
 	stop      chan struct{}
 }
 
-func NewTimer(confPath string) (*Timer, error) {
-	p := &Timer{
+func NewTimer(dir string) (*Timer, error) {
+	t := &Timer{
 		stop: make(chan struct{}),
 		timerData: &timerData{
-			confPath: confPath,
-			latency:  time.Millisecond * 50, //@todo make configurable
-			mbu:      time.Minute,           //@todo make configurable
-			timeout:  time.Minute * 4,       //@todo make configurable
+			Dir:     dir,
+			Latency: time.Millisecond * 50, //@todo make configurable
+			MBU:     time.Minute,           //@todo make configurable
+			Timeout: time.Minute * 4,       //@todo make configurable
 		},
 	}
 
-	return p, nil
+	return t, nil
 }
 
-func (p *Timer) Start() error {
+func (t *Timer) Start() error {
 	//lazily initiate monitor
 	var err error
-	if p.monitor == nil {
-		dir := filepath.Dir(p.timerData.confPath)
-		p.monitor, err = monitor.New(dir, monitor.Recursive, p.timerData.latency)
+	if t.monitor == nil {
+		t.monitor, err = monitor.New(t.Dir(), monitor.Recursive, t.timerData.Latency)
 		if err != nil {
-			return errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}", dir), err)
+			return errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}", t.Dir()), err)
 		}
 	}
 
-	wakup, err := p.monitor.Start()
+	wakup, err := t.monitor.Start()
 	if err != nil {
 		return errwrap.Wrapf("Failed to start monitor: {{err}}", err)
 	}
 
 	//handle timeouts and wakeups
-	log.Printf("Timer for project '%s' was started (and unpaused) explicitely", p.timerData.confPath)
-	p.timerData.paused = false
+	log.Printf("Timer for project '%s' was started (and unpaused) explicitely", t.Dir())
+	t.timerData.Paused = false
 	go func() {
 		for {
 			select {
-			case <-p.stop:
-				log.Printf("Timer for project '%s' was stopped (and paused) explicitely", p.timerData.confPath)
-				p.timerData.paused = true
+			case <-t.stop:
+				log.Printf("Timer for project '%s' was stopped (and paused) explicitely", t.Dir())
+				t.timerData.Paused = true
 				break
-			case merr := <-p.monitor.Errors():
+			case merr := <-t.monitor.Errors():
 				log.Printf("Monitor Error: %s", merr)
-			case <-time.After(p.timerData.timeout):
-				log.Printf("Timer for project '%s' timed out after %s", p.timerData.confPath, p.timerData.timeout)
-				p.timerData.paused = true
+			case <-time.After(t.timerData.Timeout):
+				log.Printf("Timer for project '%s' timed out after %s", t.Dir(), t.timerData.Timeout)
+				t.timerData.Paused = true
 			case ev := <-wakup:
-				log.Printf("Timer for project '%s' woke up after some activity in '%s'", p.timerData.confPath, ev.Dir())
-				p.timerData.paused = false
+				log.Printf("Timer for project '%s' woke up after some activity in '%s'", t.Dir(), ev.Dir())
+				t.timerData.Paused = false
 			}
 		}
 	}()
@@ -82,14 +80,14 @@ func (p *Timer) Start() error {
 	//handle time increments
 	go func() {
 		for {
-			if !p.timerData.paused {
-				p.timerData.time += p.timerData.mbu
+			if !t.timerData.Paused {
+				t.timerData.Time += t.timerData.MBU
 			}
 
 			select {
-			case <-p.stop:
+			case <-t.stop:
 				break
-			case <-time.After(p.timerData.mbu):
+			case <-time.After(t.timerData.MBU):
 			}
 		}
 	}()
@@ -97,18 +95,9 @@ func (p *Timer) Start() error {
 	return nil
 }
 
-func (p *Timer) IsPaused() bool {
-	return p.timerData.paused
-}
-
-func (t *Timer) Time() time.Duration {
-	return t.timerData.time
-}
-
-func (p *Timer) Stop() error {
-	p.stop <- struct{}{}
-
-	err := p.monitor.Stop()
+func (t *Timer) Stop() error {
+	t.stop <- struct{}{}
+	err := t.monitor.Stop()
 	if err != nil {
 		return errwrap.Wrapf("Failed to stop monitor: {{err}}", err)
 	}
@@ -116,14 +105,22 @@ func (p *Timer) Stop() error {
 	return nil
 }
 
-func (p *Timer) ConfPath() string {
-	return p.timerData.confPath
+func (t *Timer) IsPaused() bool {
+	return t.timerData.Paused
 }
 
-func (p *Timer) UnmarshalJSON(b []byte) error {
-	return json.Unmarshal(b, &p.timerData)
+func (t *Timer) Time() time.Duration {
+	return t.timerData.Time
 }
 
-func (p *Timer) MarshalJSON() ([]byte, error) {
-	return json.Marshal(p.timerData)
+func (t *Timer) Dir() string {
+	return t.timerData.Dir
+}
+
+func (t *Timer) UnmarshalJSON(b []byte) error {
+	return json.Unmarshal(b, &t.timerData)
+}
+
+func (t *Timer) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.timerData)
 }
