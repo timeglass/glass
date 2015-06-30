@@ -30,6 +30,7 @@ func main() {
 	app.Version = fmt.Sprintf("%s (%s)", Version, Build)
 
 	cmds := []Command{
+		command.NewInstall(),
 		command.NewInit(),
 		command.NewStart(),
 		command.NewPause(),
