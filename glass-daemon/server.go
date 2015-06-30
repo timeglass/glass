@@ -73,6 +73,31 @@ func (s *Server) timersCreate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+func (s *Server) timersReset(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.Respond(w, err)
+		return
+	}
+
+	if dirs, ok := r.Form["dir"]; !ok {
+		s.Respond(w, fmt.Errorf("dir parameter is mandatory"))
+		return
+	} else {
+		for _, dir := range dirs {
+			t, err := s.keeper.Get(dir)
+			if err != nil {
+				s.Respond(w, errwrap.Wrapf("Failed get timer: {{err}}", err))
+				return
+			}
+
+			t.Reset()
+		}
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s *Server) timersInfo(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -127,6 +152,7 @@ func NewServer(httpb string, keeper *Keeper) (*Server, error) {
 	mux.HandleFunc("/api/", s.api)
 	mux.HandleFunc("/api/timers.create", s.timersCreate)
 	mux.HandleFunc("/api/timers.delete", s.timersDelete)
+	mux.HandleFunc("/api/timers.reset", s.timersReset)
 	mux.HandleFunc("/api/timers.info", s.timersInfo)
 	return s, nil
 }

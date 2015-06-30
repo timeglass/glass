@@ -23,12 +23,13 @@ type timerData struct {
 type Timer struct {
 	timerData *timerData
 	monitor   monitor.M
-	stop      chan struct{}
+	stopto    chan struct{}
+	stoptick  chan struct{}
+	reset     chan struct{}
 }
 
 func NewTimer(dir string) (*Timer, error) {
 	t := &Timer{
-		stop: make(chan struct{}),
 		timerData: &timerData{
 			Dir:     dir,
 			Latency: time.Millisecond * 50, //@todo make configurable
@@ -41,8 +42,12 @@ func NewTimer(dir string) (*Timer, error) {
 }
 
 func (t *Timer) Start() error {
-	//lazily initiate monitor
 	var err error
+
+	//lazily initiate members
+	t.stopto = make(chan struct{})
+	t.stoptick = make(chan struct{})
+	t.reset = make(chan struct{})
 	if t.monitor == nil {
 		t.monitor, err = monitor.New(t.Dir(), monitor.Recursive, t.timerData.Latency)
 		if err != nil {
@@ -59,9 +64,12 @@ func (t *Timer) Start() error {
 	log.Printf("Timer for project '%s' was started (and unpaused) explicitely", t.Dir())
 	t.timerData.Paused = false
 	go func() {
+		defer close(t.stopto)
+		defer close(wakup)
+
 		for {
 			select {
-			case <-t.stop:
+			case <-t.stopto:
 				log.Printf("Timer for project '%s' was stopped (and paused) explicitely", t.Dir())
 				t.timerData.Paused = true
 				break
@@ -81,16 +89,22 @@ func (t *Timer) Start() error {
 		}
 	}()
 
-	//handle time increments
+	//handle time modifications here
 	go func() {
+		defer close(t.reset)
+		defer close(t.stoptick)
+
 		for {
 			if !t.timerData.Paused {
 				t.timerData.Time += t.timerData.MBU
 			}
 
 			select {
-			case <-t.stop:
+			case <-t.stoptick:
 				break
+			case <-t.reset:
+				t.timerData.Time = 0
+				log.Printf("Timer for project '%s' was reset explicitely", t.Dir())
 			case <-time.After(t.timerData.MBU):
 			}
 		}
@@ -99,8 +113,13 @@ func (t *Timer) Start() error {
 	return nil
 }
 
+func (t *Timer) Reset() {
+	t.reset <- struct{}{}
+}
+
 func (t *Timer) Stop() error {
-	t.stop <- struct{}{}
+	t.stopto <- struct{}{}
+	t.stoptick <- struct{}{}
 	err := t.monitor.Stop()
 	if err != nil {
 		return errwrap.Wrapf("Failed to stop monitor: {{err}}", err)

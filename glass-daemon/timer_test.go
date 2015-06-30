@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStartStopTimer(t *testing.T) {
+func TestStartStopResetTimer(t *testing.T) {
 	dir, err := ioutil.TempDir("", fmt.Sprintf("glass_keeper"))
 	assert.NoError(t, err)
 
@@ -43,4 +43,12 @@ func TestStartStopTimer(t *testing.T) {
 	<-time.After(20 * time.Millisecond)
 	assert.NotEqual(t, time.Millisecond*20, timer.Time())
 	assert.False(t, timer.IsPaused())
+
+	//resetting should not ifluence paused state but start at 0
+	//and add first tick immediately
+	timer.Reset()
+	<-time.After(time.Millisecond)
+	assert.False(t, timer.IsPaused())
+	assert.Equal(t, time.Millisecond*5, timer.Time())
+
 }
