@@ -2,7 +2,7 @@ package command
 
 import (
 	"bytes"
-	// "encoding/json"
+	"encoding/json"
 	// "errors"
 	"fmt"
 	"io"
@@ -12,6 +12,8 @@ import (
 	// "time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+
+	daemon "github.com/timeglass/glass/glass-daemon"
 )
 
 type Client struct {
@@ -69,4 +71,26 @@ func (c *Client) DeleteTimer(dir string) error {
 	}
 
 	return nil
+}
+
+func (c *Client) ReadTimer(dir string) (*daemon.Timer, error) {
+	timers := []*daemon.Timer{}
+	params := url.Values{}
+	params.Set("dir", dir)
+
+	data, err := c.Call("timers.info", params)
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.info' with '%s': {{err}}", dir), err)
+	}
+
+	err = json.Unmarshal(data, &timers)
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to deserialize '%s' into a list of timers: {{err}}", data), err)
+	}
+
+	if len(timers) < 1 {
+		return nil, fmt.Errorf("Expected at least one timer from the daemon")
+	}
+
+	return timers[0], nil
 }

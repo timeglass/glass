@@ -42,7 +42,7 @@ func (c *Stop) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	fmt.Println("Deleting timer...")
+	c.Println("Deleting timer...")
 
 	client := NewClient()
 	err = client.DeleteTimer(dir)
@@ -50,6 +50,6 @@ func (c *Stop) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to delete timer: {{err}}"), err)
 	}
 
-	fmt.Println("Timer deleted!")
+	c.Println("Timer deleted!")
 	return nil
 }

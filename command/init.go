@@ -39,7 +39,7 @@ func (c *Init) Action() func(ctx *cli.Context) {
 }
 
 func (c *Init) Run(ctx *cli.Context) error {
-	fmt.Println("Writing version control hooks...")
+	c.Println("Writing version control hooks...")
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
@@ -55,7 +55,7 @@ func (c *Init) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
 	}
 
-	fmt.Println("Hooks written!")
+	c.Println("Hooks written!")
 	err = NewStart().Run(ctx)
 	if err != nil {
 		return err

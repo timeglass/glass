@@ -42,14 +42,14 @@ func (c *Start) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	fmt.Println("Creating timer...")
+	c.Println("Creating timer...")
 
 	client := NewClient()
 	err = client.CreateTimer(dir)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create timer: {{err}}"), err)
+		return errwrap.Wrapf("Failed to create timer: {{err}}", err)
 	}
 
-	fmt.Println("Timer created!")
+	c.Println("Timer created!")
 	return nil
 }

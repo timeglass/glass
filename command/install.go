@@ -38,7 +38,7 @@ func (c *Install) Action() func(ctx *cli.Context) {
 }
 
 func (c *Install) Run(ctx *cli.Context) error {
-	fmt.Println("Installing the Timeglass background service...")
+	c.Println("Installing the Timeglass background service...")
 
 	//attempt to install
 	cmd := exec.Command("glass-daemon", "install")
@@ -59,6 +59,6 @@ func (c *Install) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to start Daemon: {{err}}"), err)
 	}
 
-	fmt.Println("Done!")
+	c.Println("Done!")
 	return nil
 }

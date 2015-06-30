@@ -32,12 +32,12 @@ func main() {
 	cmds := []Command{
 		command.NewInstall(), //install daemon as a service on various platforms
 		command.NewInit(),    //write hooks, create timer and pull time data
-		command.NewStart(),   //create timer for current directory
+		command.NewStart(),   //create timer for current directory, start measuring
 		// command.NewPause(),
-		// command.NewStatus(),
-		command.NewStop(), //remove timer for current directory
-		command.NewPush(), //push notes branch to remote
-		command.NewPull(), //pull notes branch from remote
+		command.NewStatus(), //fetch info of the timer for the current directory
+		command.NewStop(),   //remove timer for current directory, discarding meaurement
+		command.NewPush(),   //push notes branch to remote
+		command.NewPull(),   //pull notes branch from remote
 		// command.NewLap(),
 		command.NewPunch(),
 		command.NewSum(),
