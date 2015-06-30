@@ -39,7 +39,7 @@ func main() {
 		command.NewStop(),   //remove timer for current directory, discarding meaurement
 		command.NewPush(),   //push notes branch to remote
 		command.NewPull(),   //pull notes branch from remote
-		command.NewPunch(),
+		command.NewPunch(),  //persist time measurement to current HEAD commit
 		command.NewSum(),
 	}
 
