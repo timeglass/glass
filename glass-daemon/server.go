@@ -21,6 +21,58 @@ type Server struct {
 	*http.Server
 }
 
+func (s *Server) timersDelete(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.Respond(w, err)
+		return
+	}
+
+	if confs, ok := r.Form["conf"]; !ok {
+		s.Respond(w, fmt.Errorf("conf parameter is mandatory"))
+		return
+	} else {
+		for _, confPath := range confs {
+			err := s.keeper.Remove(confPath)
+			if err != nil {
+				s.Respond(w, errwrap.Wrapf("Failed to remove timer: {{err}}", err))
+				return
+			}
+		}
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (s *Server) timersCreate(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.Respond(w, err)
+		return
+	}
+
+	if confs, ok := r.Form["conf"]; !ok {
+		s.Respond(w, fmt.Errorf("conf parameter is mandatory"))
+		return
+	} else {
+		for _, confPath := range confs {
+			t, err := NewTimer(confPath)
+			if err != nil {
+				s.Respond(w, errwrap.Wrapf("Failed to create new timer: {{err}}", err))
+				return
+			}
+
+			err = s.keeper.Add(t)
+			if err != nil {
+				s.Respond(w, errwrap.Wrapf("Failed to add new timer to keeper: {{err}}", err))
+				return
+			}
+		}
+	}
+
+	w.WriteHeader(http.StatusCreated)
+}
+
 func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
 		"build":   Build,
@@ -37,16 +89,18 @@ func NewServer(httpb string, keeper *Keeper) (*Server, error) {
 		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to create listener on '%s': {{err}}", httpb), err)
 	}
 
+	mux := http.NewServeMux()
 	s := &Server{
 		keeper:   keeper,
 		httpb:    httpb,
 		listener: l,
 
-		Server: &http.Server{Handler: http.DefaultServeMux},
+		Server: &http.Server{Handler: mux},
 	}
 
-	http.HandleFunc("/api/", s.api)
-
+	mux.HandleFunc("/api/", s.api)
+	mux.HandleFunc("/api/timers.create", s.timersCreate)
+	mux.HandleFunc("/api/timers.delete", s.timersDelete)
 	return s, nil
 }
 
@@ -68,8 +122,15 @@ func (s *Server) Start() error {
 }
 
 func (s *Server) Respond(w http.ResponseWriter, data interface{}) {
+	var err error
+
 	enc := json.NewEncoder(w)
-	err := enc.Encode(data)
+	if derr, ok := data.(error); !ok {
+		err = enc.Encode(data)
+	} else {
+		err = derr
+	}
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		enc.Encode(map[string]string{

@@ -72,7 +72,7 @@ func TestAddRemoveTimer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "/timeglass.json")
 
-	err = k.Remove(p)
+	err = k.Remove(p.ConfPath())
 	assert.NoError(t, err)
 
 	k.Save()

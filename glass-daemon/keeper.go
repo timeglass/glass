@@ -20,7 +20,7 @@ type Keeper struct {
 
 type keeperData struct {
 	TickRate time.Duration     `json:"tick_rate"`
-	Timers   map[string]*Timer `json:"timers,omitempty"`
+	Timers   map[string]*Timer `json:"timers"`
 }
 
 func NewKeeper(path string) (*Keeper, error) {
@@ -50,9 +50,13 @@ func (k *Keeper) Add(p *Timer) error {
 	return p.Start()
 }
 
-func (k *Keeper) Remove(p *Timer) error {
-	delete(k.keeperData.Timers, p.ConfPath())
-	return p.Stop()
+func (k *Keeper) Remove(confPath string) error {
+	if p, ok := k.keeperData.Timers[confPath]; ok {
+		delete(k.keeperData.Timers, confPath)
+		return p.Stop()
+	}
+
+	return fmt.Errorf("No known timer for '%s'", confPath)
 }
 
 func (k *Keeper) Stop() {
