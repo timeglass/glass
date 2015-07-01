@@ -46,12 +46,13 @@ func (k *Keeper) MarshalJSON() ([]byte, error) {
 }
 
 func (k *Keeper) Add(t *Timer) error {
-	if _, ok := k.keeperData.Timers[t.Dir()]; !ok {
+	if t, ok := k.keeperData.Timers[t.Dir()]; !ok {
 		k.keeperData.Timers[t.Dir()] = t
 		return t.Start()
+	} else {
+		t.Unpause()
+		return nil
 	}
-
-	return fmt.Errorf("A timer already exists for '%s'", t.Dir())
 }
 
 func (k *Keeper) Get(dir string) (*Timer, error) {

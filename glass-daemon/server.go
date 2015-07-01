@@ -1,14 +1,11 @@
 package main
 
 import (
-	// "bytes"
 	"encoding/json"
 	"fmt"
-	// "io"
 	"log"
 	"net"
 	"net/http"
-	// "strings"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 )

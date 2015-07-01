@@ -3,11 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
+	"github.com/timeglass/glass/model"
 	"github.com/timeglass/snow/monitor"
 )
 
@@ -28,14 +32,15 @@ type Timer struct {
 	stoptick  chan struct{}
 	reset     chan struct{}
 	pause     chan struct{}
+	unpause   chan struct{}
 }
 
 func NewTimer(dir string) (*Timer, error) {
 	t := &Timer{
 		timerData: &timerData{
 			Dir:     dir,
+			MBU:     time.Minute,
 			Latency: time.Millisecond * 50, //@todo make configurable
-			MBU:     time.Minute,           //@todo make configurable
 			Timeout: time.Minute * 4,       //@todo make configurable
 		},
 	}
@@ -43,15 +48,38 @@ func NewTimer(dir string) (*Timer, error) {
 	return t, nil
 }
 
+// Start get called in a multitude of different situations:
+//  - when the service starts after a reboot and loads timer state from the ledger
+//  - when a new timer is added (for a new project)
 func (t *Timer) Start() error {
 	var err error
 
-	//lazily initiate members
+	//load project specific configuration
+	conf := &model.Config{}
+	confp := filepath.Join(t.Dir(), "timeglass.json")
+	confdata, err := ioutil.ReadFile(confp)
+	if err != nil && !os.IsNotExist(err) {
+		log.Printf("Failed to read project configuration even though it exist: %s", err)
+	} else if os.IsNotExist(err) {
+		conf = model.DefaultConfig
+	} else {
+		err := json.Unmarshal(confdata, &conf)
+		if err != nil {
+			log.Printf("Failed to parse configuration JSON: %s, using default config", err)
+			conf = model.DefaultConfig
+		}
+	}
+
+	t.timerData.MBU = time.Duration(conf.MBU)
+	t.timerData.Timeout = 4 * t.timerData.MBU
+
+	//lazily initiate control members
 	t.timerData.Failed = ""
 	t.stopto = make(chan struct{})
 	t.stoptick = make(chan struct{})
 	t.reset = make(chan struct{})
 	t.pause = make(chan struct{})
+	t.unpause = make(chan struct{})
 	if t.monitor == nil {
 		t.monitor, err = monitor.New(t.Dir(), monitor.Recursive, t.timerData.Latency)
 		if err != nil {
@@ -68,19 +96,23 @@ func (t *Timer) Start() error {
 		return err
 	}
 
-	//handle pause, timeouts and wakeups
+	//handle stops, pauses, timeouts and wakeups
 	log.Printf("Timer for project '%s' was started (and unpaused) explicitely", t.Dir())
 	t.timerData.Paused = false
 	go func() {
 		defer close(t.stopto)
 		defer close(wakup)
 		defer close(t.pause)
+		defer close(t.unpause)
 
 		for {
 			select {
 			case <-t.pause:
 				log.Printf("Timer for project '%s' was paused explicitely", t.Dir())
 				t.timerData.Paused = true
+			case <-t.unpause:
+				log.Printf("Timer for project '%s' was unpaused explicitely", t.Dir())
+				t.timerData.Paused = false
 			case <-t.stopto:
 				log.Printf("Timer for project '%s' was stopped (and paused) explicitely", t.Dir())
 				t.timerData.Paused = true
@@ -127,6 +159,10 @@ func (t *Timer) Start() error {
 
 func (t *Timer) Pause() {
 	t.pause <- struct{}{}
+}
+
+func (t *Timer) Unpause() {
+	t.unpause <- struct{}{}
 }
 
 func (t *Timer) Reset() {

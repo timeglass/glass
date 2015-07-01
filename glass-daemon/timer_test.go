@@ -55,3 +55,4 @@ func TestStartStopResetTimer(t *testing.T) {
 
 // @todo test failing state
 // @todo test pause/stop when timer is stopped
+// @todo test start in multitude of situations
