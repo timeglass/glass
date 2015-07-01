@@ -3,15 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
-	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/config"
 	"github.com/timeglass/snow/monitor"
 )
 
@@ -55,19 +52,10 @@ func (t *Timer) Start() error {
 	var err error
 
 	//load project specific configuration
-	conf := &model.Config{}
-	confp := filepath.Join(t.Dir(), "timeglass.json")
-	confdata, err := ioutil.ReadFile(confp)
-	if err != nil && !os.IsNotExist(err) {
-		log.Printf("Failed to read project configuration even though it exist: %s", err)
-	} else if os.IsNotExist(err) {
-		conf = model.DefaultConfig
-	} else {
-		err := json.Unmarshal(confdata, &conf)
-		if err != nil {
-			log.Printf("Failed to parse configuration JSON: %s, using default config", err)
-			conf = model.DefaultConfig
-		}
+	conf, err := config.ReadConfig(t.Dir())
+	if err != nil {
+		log.Printf("Failed to read configuration for '%s': %s, using default", t.Dir(), err)
+		conf = config.DefaultConfig
 	}
 
 	t.timerData.MBU = time.Duration(conf.MBU)

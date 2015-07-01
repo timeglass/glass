@@ -7,8 +7,6 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/timeglass/glass/model"
-
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 	"github.com/timeglass/glass/_vendor/github.com/kardianos/service"
 )
@@ -24,7 +22,7 @@ type daemon struct {
 func (p *daemon) Start(s service.Service) error {
 	var err error
 
-	path, err := model.SystemTimeglassPathCreateIfNotExist()
+	path, err := SystemTimeglassPathCreateIfNotExist()
 	if err != nil {
 		return errwrap.Wrapf("Failed to find Timeglass system path: {{err}}", err)
 	}

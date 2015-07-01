@@ -8,7 +8,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
-	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/config"
 	"github.com/timeglass/glass/vcs"
 )
 
@@ -51,8 +51,7 @@ func (c *Push) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	m := model.New(dir)
-	conf, err := m.ReadConfig()
+	conf, err := config.ReadConfig(dir)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}

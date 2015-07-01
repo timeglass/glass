@@ -6,12 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
-
-	"github.com/timeglass/glass/model"
 )
-
-//@todo repeats in model/model.go
-var GlassUserDir = ".timeglass"
 
 type Logger struct {
 	file *os.File
@@ -22,7 +17,7 @@ type Logger struct {
 
 func NewLogger(w io.Writer) (*Logger, error) {
 	l := &Logger{}
-	path, err := model.SystemTimeglassPathCreateIfNotExist()
+	path, err := SystemTimeglassPathCreateIfNotExist()
 	if err != nil {
 		return nil, errwrap.Wrapf("Failed to find Timeglass system path: {{err}}", err)
 	}
