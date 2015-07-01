@@ -26,7 +26,11 @@ var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # @see http://git-scm.com/docs/githooks#_prepare_commit_msg
 case "$2" in
 message|template) 
+	# -m method
 	printf "$(cat $1)$(glass status)" > "$1" ;;
+"")
+	# interactive method
+	printf "$(glass status)\n$(cat $1)" > "$1" ;;	
 esac
 `))
 
