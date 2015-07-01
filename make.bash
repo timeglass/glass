@@ -3,19 +3,24 @@ GOOS=`go env GOOS`
 GOARCH=`go env GOARCH`
 XGOARCH=$GOARCH
 
+EXT=""
+if [ "$GOOS" == "windows" ]; then
+	EXT=".exe"
+fi
+
 function run_build_daemon {
-	echo "building Daemon..."
-	go build -o $GOPATH/bin/glass-daemon -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon
+	echo "building Daemon..."	
+	go build -o $GOPATH/bin/glass-daemon${EXT} -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" ./glass-daemon
 }
 
 function run_build_cli {
 	echo "building CLI..."
-	go build -o $GOPATH/bin/glass -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" .
+	go build -o $GOPATH/bin/glass${EXT} -ldflags "-X main.Version `cat VERSION` -X main.Build `date -u +%Y%m%d%H%M%S`" .
 }
 
 function run_run_daemon {
 	run_build_daemon
-	glass-daemon -bind :10000
+	glass-daemon$EXT -bind :10000
 }  
 
 function run_test {
@@ -32,8 +37,8 @@ function run_release_prepare_dirs {
 	echo "creating release directories..."
 	rm -fr bin/${GOOS}*
 	mkdir -p bin/${GOOS}_${GOARCH}
-	cp $GOPATH/bin/glass-daemon bin/${GOOS}_${GOARCH}
-	cp $GOPATH/bin/glass bin/${GOOS}_${GOARCH}
+	cp $GOPATH/bin/glass-daemon${EXT} bin/${GOOS}_${GOARCH}
+	cp $GOPATH/bin/glass${EXT} bin/${GOOS}_${GOARCH}
 }
 
 function run_release {
