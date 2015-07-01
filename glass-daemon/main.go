@@ -38,6 +38,7 @@ func (p *daemon) Start(s service.Service) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create server on '%s': {{err}}, is the service already running?", bind), err)
 	}
 
+	go p.server.checkVersion()
 	go p.keeper.Start()
 	go p.run()
 	return nil

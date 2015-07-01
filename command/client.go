@@ -49,6 +49,21 @@ func (c *Client) Call(method string, params url.Values) ([]byte, error) {
 	return body.Bytes(), nil
 }
 
+func (c *Client) Info() (map[string]interface{}, error) {
+	data, err := c.Call("", url.Values{})
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint '/': {{err}}"), err)
+	}
+
+	v := map[string]interface{}{}
+	err = json.Unmarshal(data, &v)
+	if err != nil {
+		return nil, errwrap.Wrapf(fmt.Sprintf("Failed to deserialize '%s' into map: {{err}}", data), err)
+	}
+
+	return v, nil
+}
+
 func (c *Client) CreateTimer(dir string) error {
 	params := url.Values{}
 	params.Set("dir", dir)

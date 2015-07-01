@@ -3,6 +3,8 @@ package command
 import (
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"text/template"
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
@@ -53,9 +55,22 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}
 
+	client := NewClient()
+
+	c.Printf("Fetching daemon info...")
+	dinfo, err := client.Info()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch daemon info, is it installed and running?: {{err}}"), err)
+	}
+
+	curr, _ := strconv.Atoi(strings.Replace(dinfo["newest_version"].(string), ".", "", 2))
+	recent, _ := strconv.Atoi(strings.Replace(dinfo["version"].(string), ".", "", 2))
+	if curr != 0 && recent > curr {
+		c.Println("A new version is available, please upgrade: https://github.com/timeglass/glass/releases")
+	}
+
 	c.Printf("Fetching timer info...")
 
-	client := NewClient()
 	timer, err := client.ReadTimer(dir)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch timer: {{err}}"), err)

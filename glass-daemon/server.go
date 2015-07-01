@@ -1,19 +1,25 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
+	"strings"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 )
 
+var CheckVersionURL = "https://s3-eu-west-1.amazonaws.com/timeglass/version/VERSION?dversion=" + Version
+
 type Server struct {
-	keeper   *Keeper
-	httpb    string
-	listener net.Listener
+	keeper            *Keeper
+	httpb             string
+	listener          net.Listener
+	mostRecentVersion string
 
 	*http.Server
 }
@@ -148,11 +154,13 @@ func (s *Server) timersInfo(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) api(w http.ResponseWriter, r *http.Request) {
 	data := map[string]interface{}{
-		"build":   Build,
-		"version": Version,
-		"keeper":  s.keeper,
+		"build":          Build,
+		"version":        Version,
+		"newest_version": s.mostRecentVersion,
+		"keeper":         s.keeper,
 	}
 
+	go s.checkVersion()
 	s.Respond(w, data)
 }
 
@@ -212,5 +220,19 @@ func (s *Server) Respond(w http.ResponseWriter, data interface{}) {
 		enc.Encode(map[string]string{
 			"error": err.Error(),
 		})
+	}
+}
+
+func (s *Server) checkVersion() {
+	resp, err := http.Get(CheckVersionURL)
+	if err == nil {
+		defer resp.Body.Close()
+		buff := bytes.NewBuffer(nil)
+		_, err = io.Copy(buff, resp.Body)
+		if err != nil {
+			log.Printf("Failed to read response body for version check: %s", err)
+		} else {
+			s.mostRecentVersion = strings.TrimSpace(buff.String())
+		}
 	}
 }
