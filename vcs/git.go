@@ -57,8 +57,7 @@ func NewGit(dir string) *Git {
 	}
 }
 
-func (g *Git) DefaultRemote() string { return "origin" }
-func (g *Git) Name() string          { return "git" }
+func (g *Git) Name() string { return "git" }
 func (g *Git) IsAvailable() bool {
 	fi, err := os.Stat(g.dir)
 	if err != nil || !fi.IsDir() {
@@ -66,6 +65,22 @@ func (g *Git) IsAvailable() bool {
 	}
 
 	return true
+}
+
+func (g *Git) DefaultRemote() (string, error) {
+	outbuff := bytes.NewBuffer(nil)
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+	cmd.Stdout = outbuff
+
+	err := cmd.Run()
+	if err != nil {
+		return "", ErrNoRemote
+	}
+
+	//outbuff should contain full path to remote branch that is tracked for
+	//the current local branch (e.g origin/remote_branch), we are only interested
+	//in the first part as notes are kept in their own branch
+	return strings.SplitN(outbuff.String(), "/", 2)[0], nil
 }
 
 func (g *Git) Show(commit string) (TimeData, error) {

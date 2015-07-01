@@ -89,7 +89,10 @@ func (c *Push) Run(ctx *cli.Context) error {
 
 	remote := ctx.Args().First()
 	if remote == "" {
-		remote = vc.DefaultRemote()
+		remote, err = vc.DefaultRemote()
+		if err != nil {
+			return errwrap.Wrapf("Failed to determine default remote: {{err}}", err)
+		}
 	}
 
 	err = vc.Push(remote, refs)

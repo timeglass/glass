@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+var ErrNoRemote = errors.New("Version control has no remote")
 var ErrNoRemoteTimeData = errors.New("Remote doesn't have any time data")
 var ErrNoLocalTimeData = errors.New("Local clone doesn't have any time data")
 var ErrNoCommitTimeData = errors.New("Commit doesn't have any time data")
@@ -17,7 +18,7 @@ type VCS interface {
 	Hook() error
 	Push(string, string) error
 	Pull(string) error
-	DefaultRemote() string
+	DefaultRemote() (string, error)
 	Persist(time.Duration) error
 	Show(string) (TimeData, error)
 }

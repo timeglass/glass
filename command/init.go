@@ -61,5 +61,14 @@ func (c *Init) Run(ctx *cli.Context) error {
 		return err
 	}
 
-	return NewPull().Run(ctx)
+	err = NewPull().Run(ctx)
+	if err != nil {
+		if errwrap.Contains(err, vcs.ErrNoRemote.Error()) {
+			c.Println("No remote found, skipping pull")
+		} else {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -28,7 +28,7 @@ func NewKeeper(path string) (*Keeper, error) {
 		stop: make(chan struct{}),
 		keeperData: &keeperData{
 			Timers:   map[string]*Timer{},
-			TickRate: time.Second * 10,
+			TickRate: time.Minute,
 		},
 	}
 
@@ -82,6 +82,8 @@ func (k *Keeper) Start() {
 		log.Printf("Stopped time keeper on %s", time.Now())
 	}()
 
+	//@todo, instead of a tickrate, instead only auto-save
+	//when certain data was changed
 	for {
 
 		//save state
