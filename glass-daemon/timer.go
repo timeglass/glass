@@ -12,6 +12,7 @@ import (
 )
 
 type timerData struct {
+	Failed  string        `json:"failed"`
 	Paused  bool          `json:"paused"`
 	Dir     string        `json:"conf_path"`
 	Latency time.Duration `json:"latency"`
@@ -46,6 +47,7 @@ func (t *Timer) Start() error {
 	var err error
 
 	//lazily initiate members
+	t.timerData.Failed = ""
 	t.stopto = make(chan struct{})
 	t.stoptick = make(chan struct{})
 	t.reset = make(chan struct{})
@@ -53,13 +55,17 @@ func (t *Timer) Start() error {
 	if t.monitor == nil {
 		t.monitor, err = monitor.New(t.Dir(), monitor.Recursive, t.timerData.Latency)
 		if err != nil {
-			return errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}", t.Dir()), err)
+			err = errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}", t.Dir()), err)
+			t.timerData.Failed = err.Error()
+			return err
 		}
 	}
 
 	wakup, err := t.monitor.Start()
 	if err != nil {
-		return errwrap.Wrapf("Failed to start monitor: {{err}}", err)
+		err = errwrap.Wrapf("Failed to start monitor: {{err}}", err)
+		t.timerData.Failed = err.Error()
+		return err
 	}
 
 	//handle pause, timeouts and wakeups
@@ -136,6 +142,10 @@ func (t *Timer) Stop() error {
 	}
 
 	return nil
+}
+
+func (t *Timer) HasFailed() string {
+	return t.timerData.Failed
 }
 
 func (t *Timer) IsPaused() bool {

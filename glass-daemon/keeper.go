@@ -124,7 +124,10 @@ func (k *Keeper) Load() error {
 			if !t.IsPaused() {
 				err := t.Start()
 				if err != nil {
-					return errwrap.Wrapf(fmt.Sprintf("Failed to start timer for '%s' after loaded from ledger", t.Dir()), err)
+					//failure to start a single timer shouldn't result in failure to start the daemon
+					//for example, maybe the project was moved or symlinks couldn't be resolved
+					log.Printf("Failed to start timer for '%s' after loaded from ledger: %s", t.Dir(), err)
+					continue
 				}
 			}
 		}

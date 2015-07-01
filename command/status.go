@@ -61,10 +61,14 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch timer: {{err}}"), err)
 	}
 
-	if timer.IsPaused() {
-		c.Printf("Timer is currently: PAUSED")
+	if reason := timer.HasFailed(); reason != "" {
+		c.Printf("Timer has failed: %s", reason)
 	} else {
-		c.Printf("Timer is currently: RUNNING")
+		if timer.IsPaused() {
+			c.Printf("Timer is currently: PAUSED")
+		} else {
+			c.Printf("Timer is currently: RUNNING")
+		}
 	}
 
 	tmpls := ctx.String("template")

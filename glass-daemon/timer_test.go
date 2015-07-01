@@ -52,3 +52,6 @@ func TestStartStopResetTimer(t *testing.T) {
 	assert.Equal(t, time.Millisecond*5, timer.Time())
 
 }
+
+// @todo test failing state
+// @todo test pause/stop when timer is stopped
