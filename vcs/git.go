@@ -27,10 +27,10 @@ var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 case "$2" in
 message|template) 
 	# -m method
-	printf "$(cat $1)$(glass status)" > "$1" ;;
+	printf "$(cat $1)$(glass status --commit-template)" > "$1" ;;
 "")
 	# interactive method
-	printf "$(glass status)\n$(cat $1)" > "$1" ;;	
+	printf "$(glass status --commit-template)\n$(cat $1)" > "$1" ;;	
 esac
 `))
 

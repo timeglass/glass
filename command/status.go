@@ -34,6 +34,7 @@ func (c *Status) Usage() string {
 func (c *Status) Flags() []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{Name: "template,t", Value: "", Usage: "a template that allows for arbritary formatting of the time output"},
+		cli.BoolFlag{Name: "commit-template", Usage: "use the commit template from the configuration, this overwrites and custom template using -t"},
 	}
 }
 
@@ -71,20 +72,28 @@ func (c *Status) Run(ctx *cli.Context) error {
 	}
 
 	tmpls := ctx.String("template")
-	if tmpls == "" {
+	if ctx.Bool("commit-template") {
 		tmpls = conf.CommitMessage
 	}
 
-	//parse temlate and only report error if we're talking to a human
-	tmpl, err := template.New("commit-msg").Parse(tmpls)
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to parse commit_message: '%s' in configuration as a text/template: {{err}}", conf.CommitMessage), err)
-	}
+	//we got some template specified
+	if tmpls != "" {
 
-	//execute template and write to stdout
-	err = tmpl.Execute(os.Stdout, timer.Time())
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to execute commit_message: template for time '%s': {{err}}", timer.Time()), err)
+		//parse temlate and only report error if we're talking to a human
+		tmpl, err := template.New("commit-msg").Parse(tmpls)
+		if err != nil {
+			return errwrap.Wrapf(fmt.Sprintf("Failed to parse commit_message: '%s' in configuration as a text/template: {{err}}", conf.CommitMessage), err)
+		}
+
+		//execute template and write to stdout
+		err = tmpl.Execute(os.Stdout, timer.Time())
+		if err != nil {
+			return errwrap.Wrapf(fmt.Sprintf("Failed to execute commit_message: template for time '%s': {{err}}", timer.Time()), err)
+		}
+
+	} else {
+		//just print
+		c.Printf("Timer reads: %s", timer.Time())
 	}
 
 	return nil
