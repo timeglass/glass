@@ -23,11 +23,11 @@ func (c *Init) Name() string {
 }
 
 func (c *Init) Description() string {
-	return fmt.Sprintf("Install hooks for the current repository, if hooks already exists they are truncated and rewritten.")
+	return fmt.Sprintf("Install hooks, start timer and pull measuremnets for the current repository, if hooks already exists they are truncated and rewritten.")
 }
 
 func (c *Init) Usage() string {
-	return "Install Timeglass for the current repository"
+	return "Initiate Timeglass for the current repository"
 }
 
 func (c *Init) Flags() []cli.Flag {

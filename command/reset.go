@@ -21,11 +21,11 @@ func (c *Reset) Name() string {
 }
 
 func (c *Reset) Description() string {
-	return fmt.Sprintf("...")
+	return fmt.Sprintf("Allows for setting the timer of the current repository to 0, this will discard the current measurement without saving")
 }
 
 func (c *Reset) Usage() string {
-	return "..."
+	return "Manually reset the current timer to 0s"
 }
 
 func (c *Reset) Flags() []cli.Flag {

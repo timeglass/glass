@@ -21,11 +21,11 @@ func (c *Pause) Name() string {
 }
 
 func (c *Pause) Description() string {
-	return fmt.Sprintf("...")
+	return fmt.Sprintf("Pauses the timer, running 'glass start' or editing a file in the repository resumes the timer")
 }
 
 func (c *Pause) Usage() string {
-	return "..."
+	return "Manually Pause the timer, go get some coffee"
 }
 
 func (c *Pause) Flags() []cli.Flag {

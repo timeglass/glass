@@ -21,11 +21,11 @@ func (c *Stop) Name() string {
 }
 
 func (c *Stop) Description() string {
-	return fmt.Sprintf("...")
+	return fmt.Sprintf("Timer for the current repository is removed and any measurements are discarde without being saved")
 }
 
 func (c *Stop) Usage() string {
-	return "..."
+	return "Shuts down the timer and discard any measurements"
 }
 
 func (c *Stop) Flags() []cli.Flag {

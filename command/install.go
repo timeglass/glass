@@ -22,11 +22,11 @@ func (c *Install) Name() string {
 }
 
 func (c *Install) Description() string {
-	return fmt.Sprintf("...")
+	return fmt.Sprintf("Runs the glass-daemon executable with both install and start. It requires admin privileges on windows and linux.")
 }
 
 func (c *Install) Usage() string {
-	return "..."
+	return "Install and start the background service"
 }
 
 func (c *Install) Flags() []cli.Flag {

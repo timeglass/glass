@@ -26,11 +26,11 @@ func (c *Status) Name() string {
 }
 
 func (c *Status) Description() string {
-	return fmt.Sprintf("...")
+	return fmt.Sprintf("Asks the deamon for general information and the specifics of the current timer, it allows for arbritary formatting of the current time measurement.")
 }
 
 func (c *Status) Usage() string {
-	return "..."
+	return "Show info on the timer for this repository"
 }
 
 func (c *Status) Flags() []cli.Flag {
@@ -57,6 +57,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 
 	client := NewClient()
 
+	//fetch information on overall daemon
 	c.Printf("Fetching daemon info...")
 	dinfo, err := client.Info()
 	if err != nil {
@@ -69,8 +70,8 @@ func (c *Status) Run(ctx *cli.Context) error {
 		c.Println("A new version is available, please upgrade: https://github.com/timeglass/glass/releases")
 	}
 
+	//fetch information on the timer specific to this directory
 	c.Printf("Fetching timer info...")
-
 	timer, err := client.ReadTimer(dir)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch timer: {{err}}"), err)

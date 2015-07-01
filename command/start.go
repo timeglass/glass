@@ -21,11 +21,11 @@ func (c *Start) Name() string {
 }
 
 func (c *Start) Description() string {
-	return fmt.Sprintf("...")
+	return fmt.Sprintf("Creates a new timer for the current repository, if it is currently paused the timer continues.")
 }
 
 func (c *Start) Usage() string {
-	return "..."
+	return "Manually start timer for the current repository"
 }
 
 func (c *Start) Flags() []cli.Flag {
