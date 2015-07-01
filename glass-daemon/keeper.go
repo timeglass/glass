@@ -82,8 +82,6 @@ func (k *Keeper) Start() {
 		log.Printf("Stopped time keeper on %s", time.Now())
 	}()
 
-	//@todo, start ech timer?
-
 	for {
 
 		//save state
@@ -95,7 +93,6 @@ func (k *Keeper) Start() {
 		//stop or wait for next tick
 		select {
 		case <-k.stop:
-			//@todo, stop each timers?
 			return
 		case <-time.After(k.TickRate()):
 		}
