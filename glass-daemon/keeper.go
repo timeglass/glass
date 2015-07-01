@@ -46,11 +46,11 @@ func (k *Keeper) MarshalJSON() ([]byte, error) {
 }
 
 func (k *Keeper) Add(t *Timer) error {
-	if t, ok := k.keeperData.Timers[t.Dir()]; !ok {
+	if tt, ok := k.keeperData.Timers[t.Dir()]; !ok {
 		k.keeperData.Timers[t.Dir()] = t
 		return t.Start()
 	} else {
-		t.Unpause()
+		tt.Unpause()
 		return nil
 	}
 }
