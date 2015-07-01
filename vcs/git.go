@@ -42,7 +42,7 @@ glass reset
 
 var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #push time data
-glass push $1 --from-hook
+glass push $1
 `))
 
 type gitTimeData struct {

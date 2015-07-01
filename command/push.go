@@ -7,6 +7,7 @@ import (
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/mattn/go-isatty"
 
 	"github.com/timeglass/glass/config"
 	"github.com/timeglass/glass/vcs"
@@ -33,12 +34,7 @@ func (c *Push) Usage() string {
 }
 
 func (c *Push) Flags() []cli.Flag {
-	return []cli.Flag{
-		cli.BoolFlag{
-			Name:  "from-hook",
-			Usage: "Indicate it is called from a git, now expects refs on stdin",
-		},
-	}
+	return []cli.Flag{}
 }
 
 func (c *Push) Action() func(ctx *cli.Context) {
@@ -59,7 +55,7 @@ func (c *Push) Run(ctx *cli.Context) error {
 	//hooks require us require us to check the refs that are pushed over stdin
 	//to prevent inifinte push loop
 	refs := ""
-	if ctx.Bool("from-hook") {
+	if !isatty.IsTerminal(os.Stdin.Fd()) {
 		bytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return errwrap.Wrapf("Failed to read from stdin: {{err}}", err)
