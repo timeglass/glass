@@ -14,6 +14,7 @@ var ErrNoCommitTimeData = errors.New("Commit doesn't have any time data")
 
 type VCS interface {
 	Name() string
+	Root() string
 	IsAvailable() bool
 	Hook() error
 	Push(string, string) error

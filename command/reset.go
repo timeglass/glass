@@ -6,6 +6,8 @@ import (
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+
+	"github.com/timeglass/glass/vcs"
 )
 
 type Reset struct {
@@ -42,10 +44,15 @@ func (c *Reset) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
+	vc, err := vcs.GetVCS(dir)
+	if err != nil {
+		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
+	}
+
 	c.Printf("Resetting timer to 0s...")
 
 	client := NewClient()
-	err = client.ResetTimer(dir)
+	err = client.ResetTimer(vc.Root())
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to reset timer: {{err}}"), err)
 	}

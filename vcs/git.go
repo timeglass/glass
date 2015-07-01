@@ -52,23 +52,35 @@ type gitTimeData struct {
 func (g *gitTimeData) Total() time.Duration { return g.total }
 
 type Git struct {
-	dir string
+	dir  string
+	root string
+	init string
 }
 
 func NewGit(dir string) *Git {
 	return &Git{
-		dir: filepath.Join(dir, ".git"),
+		init: dir,
 	}
 }
 
 func (g *Git) Name() string { return "git" }
 func (g *Git) IsAvailable() bool {
-	fi, err := os.Stat(g.dir)
-	if err != nil || !fi.IsDir() {
+	outbuff := bytes.NewBuffer(nil)
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	cmd.Stdout = outbuff
+
+	err := cmd.Run()
+	if err != nil {
 		return false
 	}
 
+	g.root = strings.TrimSpace(outbuff.String())
+	g.dir = filepath.Join(g.root, ".git")
 	return true
+}
+
+func (g *Git) Root() string {
+	return g.root
 }
 
 func (g *Git) DefaultRemote() (string, error) {

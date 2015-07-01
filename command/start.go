@@ -6,6 +6,8 @@ import (
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+
+	"github.com/timeglass/glass/vcs"
 )
 
 type Start struct {
@@ -42,10 +44,15 @@ func (c *Start) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
+	vc, err := vcs.GetVCS(dir)
+	if err != nil {
+		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
+	}
+
 	c.Println("Starting timer...")
 
 	client := NewClient()
-	err = client.CreateTimer(dir)
+	err = client.CreateTimer(vc.Root())
 	if err != nil {
 		return errwrap.Wrapf("Failed to create timer: {{err}}", err)
 	}
