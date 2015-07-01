@@ -12,7 +12,6 @@ __Features:__
 - The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1m. 
 - Spent time is stored as metadata using [git-notes](https://git-scm.com/docs/git-notes) and pushed automatically
 
-
 __Currently Supported:__
 
 - Platforms: __OSX, Linux and Windows__
