@@ -63,8 +63,8 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch daemon info, is it installed and running?: {{err}}"), err)
 	}
 
-	curr, _ := strconv.Atoi(strings.Replace(dinfo["newest_version"].(string), ".", "", 2))
-	recent, _ := strconv.Atoi(strings.Replace(dinfo["version"].(string), ".", "", 2))
+	curr, _ := strconv.Atoi(strings.Replace(dinfo["version"].(string), ".", "", 2))
+	recent, _ := strconv.Atoi(strings.Replace(dinfo["newest_version"].(string), ".", "", 2))
 	if curr != 0 && recent > curr {
 		c.Println("A new version is available, please upgrade: https://github.com/timeglass/glass/releases")
 	}
