@@ -1,2 +1,0 @@
-glass-daemon.exe
-glass.exe
