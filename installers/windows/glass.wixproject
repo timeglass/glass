@@ -1,7 +1,7 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
       <WixTargetsPath>$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
-      <OutputName>Timeglass Setup</OutputName>
+      <OutputName>Timeglass Setup (x64)</OutputName>
       <OutputType>Package</OutputType>
       <DefineSolutionProperties>false</DefineSolutionProperties>
       <OutputPath>bin\</OutputPath>

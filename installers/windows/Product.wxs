@@ -24,6 +24,19 @@
         	</Directory>
 		</Directory>
 
+		<DirectoryRef Id="TARGETDIR">
+			<Component Id="CMP_PathEnv" Guid="5ed28061-6d55-47e4-8682-497bc74c2113">
+			    <Environment 
+			    	Id="SET_Path" 
+			    	Name="PATH" 
+			    	Value="[GlassDir]" 
+			    	Permanent="no" 
+			    	Part="last" 
+			    	Action="set" 
+			    	System="yes" />
+			</Component>
+		</DirectoryRef>
+
 		<DirectoryRef Id="GlassDir">
 			<Component Id="CMP_GlassExe" Guid="51314510-c6ff-423f-b19b-7fc0a72b5015" Win64="yes">
 			     <File Id="FILE_GlassDir_GlassExe" Source="glass.exe" KeyPath="yes" />
@@ -34,9 +47,11 @@
 		</DirectoryRef>
 
 		<Feature Id="FEATURE_Core" Title="Core Tooling" Level="1">
+		     <ComponentRef Id="CMP_PathEnv" />
 		     <ComponentRef Id="CMP_GlassExe" />
 		     <ComponentRef Id="CMP_GlassDaemonExe" />
 		</Feature>
+
 
     </Product>
 </Wix>
