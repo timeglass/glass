@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-// executes following steps:
+// executes "getting started" steps:
 // - download and unzip to PATH
 // - install daemon
 // - write configuration file to repo
@@ -17,7 +17,7 @@ import (
 // - wakup with a file edit
 // - run status again and assert increased time
 
-func TestFirstTimeUse(t *testing.T) {
+func TestGettingStartedSteps(t *testing.T) {
 
 	//@todo implement
 
