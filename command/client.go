@@ -43,7 +43,16 @@ func (c *Client) Call(method string, params url.Values) ([]byte, error) {
 	}
 
 	if resp.StatusCode > 299 {
-		return body.Bytes(), fmt.Errorf("Unexpected StatusCode returned from Deamon: '%d', body: '%s'", resp.StatusCode, body.String())
+		errresp := &struct {
+			Error string
+		}{}
+
+		err := json.Unmarshal(body.Bytes(), &errresp)
+		if err != nil || errresp.Error == "" {
+			return body.Bytes(), fmt.Errorf("Unexpected StatusCode returned from Deamon: '%d', body: '%s'", resp.StatusCode, body.String())
+		}
+
+		return body.Bytes(), fmt.Errorf(errresp.Error)
 	}
 
 	return body.Bytes(), nil
@@ -52,7 +61,7 @@ func (c *Client) Call(method string, params url.Values) ([]byte, error) {
 func (c *Client) Info() (map[string]interface{}, error) {
 	data, err := c.Call("", url.Values{})
 	if err != nil {
-		return nil, errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint '/': {{err}}"), err)
+		return nil, err
 	}
 
 	v := map[string]interface{}{}

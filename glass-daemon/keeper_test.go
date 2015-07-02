@@ -28,7 +28,7 @@ func TestLoadSave(t *testing.T) {
 	k.Save()
 	data, err := ioutil.ReadFile(filepath.Join(dir, "ledger.json"))
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), "tick_rate")
+	assert.Contains(t, string(data), "timers")
 }
 
 func TestStartSave(t *testing.T) {
@@ -41,11 +41,11 @@ func TestStartSave(t *testing.T) {
 	go k.Start()
 	defer k.Stop()
 
-	<-time.After(time.Millisecond)
+	<-time.After(time.Millisecond * 10)
 
 	data, err := ioutil.ReadFile(filepath.Join(dir, "ledger.json"))
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), "tick_rate")
+	assert.Contains(t, string(data), "timers")
 }
 
 func TestAddRemoveTimer(t *testing.T) {
@@ -59,28 +59,29 @@ func TestAddRemoveTimer(t *testing.T) {
 	k, err := NewKeeper(dir)
 	assert.NoError(t, err)
 
+	go k.Start()
+	defer k.Stop()
+
 	timer, err := NewTimer(pdir)
 	assert.NoError(t, err)
 
+	//add new timer
 	err = k.Add(timer)
 	assert.NoError(t, err)
 	assert.False(t, timer.IsPaused())
 
-	k.Save()
+	<-time.After(time.Millisecond * 40)
 	data, err := ioutil.ReadFile(filepath.Join(dir, "ledger.json"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(data), "latency")
 
+	//remove the timer
 	err = k.Remove(timer.Dir())
 	assert.NoError(t, err)
 
-	k.Save()
+	<-time.After(time.Millisecond * 40)
 	data, err = ioutil.ReadFile(filepath.Join(dir, "ledger.json"))
 	assert.NoError(t, err)
 	assert.NotContains(t, string(data), "latency")
 	assert.True(t, timer.IsPaused())
-
-	err = k.Add(timer)
-	assert.NoError(t, err)
-	assert.False(t, timer.IsPaused())
 }

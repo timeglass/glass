@@ -22,7 +22,7 @@ func NewLogger(w io.Writer) (*Logger, error) {
 		return nil, errwrap.Wrapf("Failed to find Timeglass system path: {{err}}", err)
 	}
 
-	l.path = filepath.Join(path, "glass-daemon.log")
+	l.path = filepath.Join(path, "daemon.log")
 	l.file, err = os.OpenFile(l.path, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		return nil, err

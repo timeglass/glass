@@ -18,6 +18,9 @@ func TestApiRoot(t *testing.T) {
 	k, err := NewKeeper(dir)
 	assert.NoError(t, err)
 
+	go k.Start()
+	defer k.Stop()
+
 	svr, err := NewServer(":0", k)
 	assert.NoError(t, err)
 
@@ -37,6 +40,9 @@ func TestCreateInfoRemoveTimer(t *testing.T) {
 
 	k, err := NewKeeper(dir)
 	assert.NoError(t, err)
+
+	go k.Start()
+	defer k.Stop()
 
 	svr, err := NewServer(":0", k)
 	assert.NoError(t, err)

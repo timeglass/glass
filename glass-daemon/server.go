@@ -141,7 +141,7 @@ func (s *Server) timersInfo(w http.ResponseWriter, r *http.Request) {
 		for _, dir := range dirs {
 			t, err := s.keeper.Get(dir)
 			if err != nil {
-				s.Respond(w, errwrap.Wrapf("Failed get timer: {{err}}", err))
+				s.Respond(w, errwrap.Wrapf("Failed to get timer: {{err}}", err))
 				return
 			}
 

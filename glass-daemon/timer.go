@@ -23,13 +23,13 @@ type timerData struct {
 }
 
 type Timer struct {
+	running   bool
 	timerData *timerData
 	monitor   monitor.M
+	save      chan struct{}
 	stopto    chan struct{}
 	stoptick  chan struct{}
 	reset     chan struct{}
-	pause     chan struct{}
-	unpause   chan struct{}
 }
 
 func NewTimer(dir string) (*Timer, error) {
@@ -48,13 +48,21 @@ func NewTimer(dir string) (*Timer, error) {
 // Start get called in a multitude of different situations:
 //  - when the service starts after a reboot and loads timer state from the ledger
 //  - when a new timer is added (for a new project)
-func (t *Timer) Start() error {
+func (t *Timer) Start() {
 	var err error
+
+	//already running and not failed? no-op
+	if t.running && t.HasFailed() == "" {
+		return
+	}
+
+	t.timerData.Failed = ""
 
 	//load project specific configuration
 	conf, err := config.ReadConfig(t.Dir())
 	if err != nil {
-		log.Printf("Failed to read configuration for '%s': %s, using default", t.Dir(), err)
+		err = errwrap.Wrapf(fmt.Sprintf("Failed to read configuration for '%s': {{err}}, using default", t.Dir()), err)
+		t.timerData.Failed = err.Error()
 		conf = config.DefaultConfig
 	}
 
@@ -62,58 +70,58 @@ func (t *Timer) Start() error {
 	t.timerData.Timeout = 4 * t.timerData.MBU
 
 	//lazily initiate control members
-	t.timerData.Failed = ""
 	t.stopto = make(chan struct{})
 	t.stoptick = make(chan struct{})
 	t.reset = make(chan struct{})
-	t.pause = make(chan struct{})
-	t.unpause = make(chan struct{})
+
+	//setup monitor, if not done yet
+	wakeup := make(chan monitor.DirEvent)
+	merrs := make(chan error)
 	if t.monitor == nil {
 		t.monitor, err = monitor.New(t.Dir(), monitor.Recursive, t.timerData.Latency)
 		if err != nil {
 			err = errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}", t.Dir()), err)
 			t.timerData.Failed = err.Error()
-			return err
-		}
-	}
+			log.Print(err)
+		} else {
+			wakeup, err = t.monitor.Start()
+			if err != nil {
+				err = errwrap.Wrapf("Failed to start monitor: {{err}}", err)
+				t.timerData.Failed = err.Error()
+				log.Print(err)
+			}
 
-	wakup, err := t.monitor.Start()
-	if err != nil {
-		err = errwrap.Wrapf("Failed to start monitor: {{err}}", err)
-		t.timerData.Failed = err.Error()
-		return err
+			merrs = t.monitor.Errors()
+		}
+	} else {
+		wakeup = t.monitor.Events()
+		merrs = t.monitor.Errors()
 	}
 
 	//handle stops, pauses, timeouts and wakeups
 	log.Printf("Timer for project '%s' was started (and unpaused) explicitely", t.Dir())
 	t.timerData.Paused = false
+	t.running = true
 	go func() {
-		defer close(t.stopto)
-		defer close(wakup)
-		defer close(t.pause)
-		defer close(t.unpause)
-
 		for {
+
+			t.EmitSave()
 			select {
-			case <-t.pause:
-				log.Printf("Timer for project '%s' was paused explicitely", t.Dir())
-				t.timerData.Paused = true
-			case <-t.unpause:
-				log.Printf("Timer for project '%s' was unpaused explicitely", t.Dir())
-				t.timerData.Paused = false
 			case <-t.stopto:
 				log.Printf("Timer for project '%s' was stopped (and paused) explicitely", t.Dir())
-				t.timerData.Paused = true
-				break
-			case merr := <-t.monitor.Errors():
+				return
+			case merr := <-merrs:
 				log.Printf("Monitor Error: %s", merr)
+				t.timerData.Failed = merr.Error()
 			case <-time.After(t.timerData.Timeout):
-				log.Printf("Timer for project '%s' timed out after %s", t.Dir(), t.timerData.Timeout)
-				t.timerData.Paused = true
-			case ev := <-wakup:
+				if !t.IsPaused() {
+					log.Printf("Timer for project '%s' timed out after %s", t.Dir(), t.timerData.Timeout)
+				}
+				t.Pause()
+			case ev := <-wakeup:
 				if t.IsPaused() {
 					log.Printf("Timer for project '%s' woke up after some activity in '%s'", t.Dir(), ev.Dir())
-					t.timerData.Paused = false
+					t.Unpause()
 				} else {
 					log.Printf("Timer saw activity for project '%s' in '%s' but is already unpaused", t.Dir(), ev.Dir())
 				}
@@ -123,49 +131,90 @@ func (t *Timer) Start() error {
 
 	//handle time modifications here
 	go func() {
-		defer close(t.reset)
-		defer close(t.stoptick)
-
 		for {
 			if !t.timerData.Paused {
 				t.timerData.Time += t.timerData.MBU
 			}
 
+			t.EmitSave()
 			select {
 			case <-t.stoptick:
-				break
+				return
 			case <-t.reset:
 				t.timerData.Time = 0
-				log.Printf("Timer for project '%s' was reset explicitely", t.Dir())
+				log.Printf("Timer for project '%s' was reset", t.Dir())
 			case <-time.After(t.timerData.MBU):
 			}
 		}
 	}()
-
-	return nil
 }
 
 func (t *Timer) Pause() {
-	t.pause <- struct{}{}
+	if !t.running || t.IsPaused() {
+		return
+	}
+
+	t.timerData.Paused = true
+	log.Printf("Timer for project '%s' was paused", t.Dir())
 }
 
 func (t *Timer) Unpause() {
-	t.unpause <- struct{}{}
+	if !t.running || !t.IsPaused() {
+		return
+	}
+
+	t.timerData.Paused = false
+	log.Printf("Timer for project '%s' was unpaused", t.Dir())
 }
 
 func (t *Timer) Reset() {
+	if !t.running {
+		//if running state is not correct
+		//this migth cause race conditions
+		t.timerData.Time = 0
+		return
+	}
+
 	t.reset <- struct{}{}
 }
 
-func (t *Timer) Stop() error {
-	t.stopto <- struct{}{}
-	t.stoptick <- struct{}{}
-	err := t.monitor.Stop()
-	if err != nil {
-		return errwrap.Wrapf("Failed to stop monitor: {{err}}", err)
+func (t *Timer) Stop() {
+	if !t.running {
+		return
 	}
 
-	return nil
+	if t.monitor != nil {
+
+		//@todo Remove this at some point, it normalizes
+		//time after rapid stop start usage on OSX
+		//for unkown reasons, long term solution should probably
+		//involve some mechanism that prevents the darwin monitor
+		//form stopping to quickly after being started
+		<-time.After(time.Millisecond)
+
+		err := t.monitor.Stop()
+		if err != nil {
+			log.Print(errwrap.Wrapf("Failed to stop monitor: {{err}}", err))
+		}
+
+		t.monitor = nil
+	}
+
+	t.stopto <- struct{}{}
+	t.stoptick <- struct{}{}
+
+	t.timerData.Paused = true
+	t.running = false
+}
+
+func (t *Timer) EmitSave() {
+	if t.save != nil {
+		t.save <- struct{}{}
+	}
+}
+
+func (t *Timer) SetSave(ch chan struct{}) {
+	t.save = ch
 }
 
 func (t *Timer) HasFailed() string {

@@ -14,21 +14,21 @@ import (
 type Keeper struct {
 	ledgerPath string
 	stop       chan struct{}
+	save       chan struct{}
 
 	keeperData *keeperData
 }
 
 type keeperData struct {
-	TickRate time.Duration     `json:"tick_rate"`
-	Timers   map[string]*Timer `json:"timers"`
+	Timers map[string]*Timer `json:"timers"`
 }
 
 func NewKeeper(path string) (*Keeper, error) {
 	k := &Keeper{
 		stop: make(chan struct{}),
+		save: make(chan struct{}),
 		keeperData: &keeperData{
-			Timers:   map[string]*Timer{},
-			TickRate: time.Minute,
+			Timers: map[string]*Timer{},
 		},
 	}
 
@@ -47,12 +47,17 @@ func (k *Keeper) MarshalJSON() ([]byte, error) {
 
 func (k *Keeper) Add(t *Timer) error {
 	if tt, ok := k.keeperData.Timers[t.Dir()]; !ok {
+		log.Printf("New timer '%s' for keeper, adding to collection...", t.Dir())
 		k.keeperData.Timers[t.Dir()] = t
-		return t.Start()
+		t.SetSave(k.save)
 	} else {
+		log.Printf("Timer '%s' exists for keeper, unpausing...", t.Dir())
 		tt.Unpause()
-		return nil
+		t = tt
 	}
+
+	t.Start()
+	return nil
 }
 
 func (k *Keeper) Get(dir string) (*Timer, error) {
@@ -66,7 +71,10 @@ func (k *Keeper) Get(dir string) (*Timer, error) {
 func (k *Keeper) Remove(dir string) error {
 	if t, ok := k.keeperData.Timers[dir]; ok {
 		delete(k.keeperData.Timers, dir)
-		return t.Stop()
+
+		k.save <- struct{}{}
+		t.Stop()
+		return nil
 	}
 
 	return fmt.Errorf("No known timer for '%s'", dir)
@@ -82,8 +90,6 @@ func (k *Keeper) Start() {
 		log.Printf("Stopped time keeper on %s", time.Now())
 	}()
 
-	//@todo, instead of a tickrate, instead only auto-save
-	//when certain data was changed
 	for {
 
 		//save state
@@ -96,13 +102,9 @@ func (k *Keeper) Start() {
 		select {
 		case <-k.stop:
 			return
-		case <-time.After(k.TickRate()):
+		case <-k.save:
 		}
 	}
-}
-
-func (k *Keeper) TickRate() time.Duration {
-	return k.keeperData.TickRate
 }
 
 func (k *Keeper) Load() error {
@@ -119,16 +121,11 @@ func (k *Keeper) Load() error {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to decode JSON in '%s': {{err}}", k.ledgerPath), err)
 		}
 
-		//immediately restart if not paused
+		//immediately restart and link save channel if not paused
 		for _, t := range k.keeperData.Timers {
+			t.SetSave(k.save)
 			if !t.IsPaused() {
-				err := t.Start()
-				if err != nil {
-					//failure to start a single timer shouldn't result in failure to start the daemon
-					//for example, maybe the project was moved or symlinks couldn't be resolved
-					log.Printf("Failed to start timer for '%s' after loaded from ledger: %s", t.Dir(), err)
-					continue
-				}
+				t.Start()
 			}
 		}
 
