@@ -43,6 +43,23 @@
 			</Component>
 			<Component Id="CMP_GlassDaemonExe" Guid="22942439-2b31-4333-acd3-8c39851cca35"  Win64="yes">
 			     <File Id="FILE_GlassDir_GlassDaemonExe" Source="glass-daemon.exe" KeyPath="yes" />
+
+				<ServiceInstall 
+					Id="InstallDaemon" 
+					Name="Timeglass" 
+					Description="Automated time tracking daemon that monitors file changes"
+					DisplayName="Timeglass" 
+					Start="auto" 
+					ErrorControl="normal" 
+					Type="ownProcess" />
+				
+				<ServiceControl 
+					Id="ControlDaemon" 
+					Name="timeglass" 
+					Start="install" 
+					Stop="both" 
+					Remove="uninstall" 
+					Wait="yes" />
 			</Component>
 		</DirectoryRef>
 

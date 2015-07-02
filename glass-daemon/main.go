@@ -77,6 +77,11 @@ func main() {
 		conf.Name = "com.timeglass.glass-daemon"
 		conf.Option["UserService"] = true
 	} else if runtime.GOOS == "windows" {
+
+		//WATCH OUT: timeglass has a windows installer
+		//that takes care of installing and starting services
+		//in addition to the command line
+
 		conf.Name = "Timeglass" //windows style
 	}
 
