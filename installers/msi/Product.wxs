@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">    
     <Product    Id="*"
                 Name="Timeglass"
                 Language="1033"
-                Version="0.6.0"
+                Version="0.6.2"
                 Manufacturer="Timeglass"
-                UpgradeCode="bbd242f4-61b0-4c1f-bf85-56f155747619">
+                UpgradeCode="bbd242f4-61b0-4c1f-bf85-56f155747619">        
         
         <Package InstallerVersion="301"
             Compressed="yes"
@@ -69,6 +69,6 @@
 		     <ComponentRef Id="CMP_GlassDaemonExe" />
 		</Feature>
 
-
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
     </Product>
 </Wix>
