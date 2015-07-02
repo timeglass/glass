@@ -41,5 +41,5 @@ func GetVCS(dir string) (VCS, error) {
 		checked = append(checked, vcs.Name())
 	}
 
-	return nil, fmt.Errorf("No supported version system found in '%s', checked for: %s", dir, strings.Join(checked, ","))
+	return nil, fmt.Errorf("No supported Version Control System found in '%s', checked for: %s", dir, strings.Join(checked, ","))
 }

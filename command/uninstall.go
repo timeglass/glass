@@ -49,7 +49,7 @@ func (c *Uninstall) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to stop Daemon: {{err}}"), err)
 	}
 
-	c.Println("Stopping the Timeglass background service...")
+	c.Println("Uninstalling the Timeglass background service...")
 
 	//attempt to Uninstall
 	cmd = exec.Command("glass-daemon", "uninstall")

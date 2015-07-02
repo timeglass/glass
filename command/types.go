@@ -21,7 +21,7 @@ func (c *command) Action(fn func(c *cli.Context) error) func(ctx *cli.Context) {
 	return func(ctx *cli.Context) {
 		err := fn(ctx)
 		if err != nil {
-			c.Fatalf("Error: %s", err)
+			c.Fatal(err)
 			return
 		}
 	}

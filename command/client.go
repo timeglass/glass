@@ -3,18 +3,20 @@ package command
 import (
 	"bytes"
 	"encoding/json"
-	// "errors"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"net/url"
-	// "strings"
-	// "time"
+	"strings"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	daemon "github.com/timeglass/glass/glass-daemon"
 )
+
+var ErrRequestFailed = errors.New("Couldn't reach background service, did you install it using 'glass install'?")
+var ErrTimerNotFound = errors.New("Couldn't find timer for this project, did you start one using 'glass start'?")
 
 type Client struct {
 	endpoint string
@@ -32,7 +34,7 @@ func (c *Client) Call(method string, params url.Values) ([]byte, error) {
 	loc := fmt.Sprintf("%s/api/%s?%s", c.endpoint, method, params.Encode())
 	resp, err := c.Get(loc)
 	if err != nil {
-		return []byte{}, errwrap.Wrapf(fmt.Sprintf("Failed to GET %s: {{err}}", loc), err)
+		return nil, ErrRequestFailed
 	}
 
 	body := bytes.NewBuffer(nil)
@@ -50,6 +52,8 @@ func (c *Client) Call(method string, params url.Values) ([]byte, error) {
 		err := json.Unmarshal(body.Bytes(), &errresp)
 		if err != nil || errresp.Error == "" {
 			return body.Bytes(), fmt.Errorf("Unexpected StatusCode returned from Deamon: '%d', body: '%s'", resp.StatusCode, body.String())
+		} else if strings.Contains(errresp.Error, "No known timer") {
+			return body.Bytes(), ErrTimerNotFound
 		}
 
 		return body.Bytes(), fmt.Errorf(errresp.Error)
@@ -79,7 +83,7 @@ func (c *Client) CreateTimer(dir string) error {
 
 	_, err := c.Call("timers.create", params)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.create' with '%s': {{err}}", dir), err)
+		return err
 	}
 
 	return nil
@@ -91,7 +95,7 @@ func (c *Client) DeleteTimer(dir string) error {
 
 	_, err := c.Call("timers.delete", params)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.delete' with '%s': {{err}}", dir), err)
+		return err
 	}
 
 	return nil
@@ -103,7 +107,7 @@ func (c *Client) ResetTimer(dir string) error {
 
 	_, err := c.Call("timers.reset", params)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.reset' with '%s': {{err}}", dir), err)
+		return err
 	}
 
 	return nil
@@ -115,7 +119,7 @@ func (c *Client) PauseTimer(dir string) error {
 
 	_, err := c.Call("timers.pause", params)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.pause' with '%s': {{err}}", dir), err)
+		return err
 	}
 
 	return nil
@@ -128,7 +132,7 @@ func (c *Client) ReadTimer(dir string) (*daemon.Timer, error) {
 
 	data, err := c.Call("timers.info", params)
 	if err != nil {
-		return nil, errwrap.Wrapf(fmt.Sprintf("Failed call http endpoint 'timers.info' with '%s': {{err}}", dir), err)
+		return nil, err
 	}
 
 	err = json.Unmarshal(data, &timers)

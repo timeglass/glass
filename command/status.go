@@ -67,7 +67,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 	c.Printf("Fetching daemon info...")
 	dinfo, err := client.Info()
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch daemon info, is it installed and running?: {{err}}"), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch daemon info: {{err}}"), err)
 	}
 
 	curr, _ := strconv.Atoi(strings.Replace(dinfo["version"].(string), ".", "", 2))
