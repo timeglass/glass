@@ -50,6 +50,8 @@ func (c *Install) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to install Daemon: {{err}}"), err)
 	}
 
+	c.Println("Starting the Timeglass background service...")
+
 	//attempt to start
 	cmd = exec.Command("glass-daemon", "start")
 	cmd.Stderr = os.Stderr
