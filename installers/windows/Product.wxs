@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+    <Product    Id="*"
+                Name="Timeglass"
+                Language="1033"
+                Version="0.6.0"
+                Manufacturer="Timeglass"
+                UpgradeCode="bbd242f4-61b0-4c1f-bf85-56f155747619">
+        
+        <Package InstallerVersion="301"
+            Compressed="yes"
+            InstallScope="perMachine"
+            Manufacturer="Timeglass"
+            Platform="x64"
+            Description="Installs Timeglass: Automated time tracking for code repositories"
+            Keywords="Timeglass,time,tracking,measuring,time,MSI"
+            Comments="(c) 2015 Timeglass" />
+
+        <MediaTemplate EmbedCab="yes" />
+        
+        <Directory Id="TARGETDIR" Name="SourceDir">
+     		<Directory Id="ProgramFiles64Folder">
+       			<Directory Id="GlassDir" Name="Timeglass" />            
+        	</Directory>
+		</Directory>
+
+		<DirectoryRef Id="GlassDir">
+			<Component Id="CMP_GlassExe" Guid="51314510-c6ff-423f-b19b-7fc0a72b5015" Win64="yes">
+			     <File Id="FILE_GlassDir_GlassExe" Source="glass.exe" KeyPath="yes" />
+			</Component>
+			<Component Id="CMP_GlassDaemonExe" Guid="22942439-2b31-4333-acd3-8c39851cca35"  Win64="yes">
+			     <File Id="FILE_GlassDir_GlassDaemonExe" Source="glass-daemon.exe" KeyPath="yes" />
+			</Component>
+		</DirectoryRef>
+
+		<Feature Id="FEATURE_Core" Title="Core Tooling" Level="1">
+		     <ComponentRef Id="CMP_GlassExe" />
+		     <ComponentRef Id="CMP_GlassDaemonExe" />
+		</Feature>
+
+    </Product>
+</Wix>

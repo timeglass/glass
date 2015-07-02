@@ -1,0 +1,2 @@
+c:\Users\golang\Desktop\go\src\github.com\timeglass\glass\installers\windows\bin\Timeglass Setup.msi
+c:\Users\golang\Desktop\go\src\github.com\timeglass\glass\installers\windows\bin\Timeglass Setup.wixpdb

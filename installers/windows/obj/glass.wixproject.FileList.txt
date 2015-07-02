@@ -1,0 +1,6 @@
+c:\Users\golang\Desktop\go\src\github.com\timeglass\glass\installers\windows\bin\Timeglass Setup.msi
+c:\Users\golang\Desktop\go\src\github.com\timeglass\glass\installers\windows\bin\Timeglass Setup.wixpdb
+obj\Product.wixobj
+obj\glass.wixproject.BindContentsFileListnull.txt
+obj\glass.wixproject.BindOutputsFileListnull.txt
+obj\glass.wixproject.BindBuiltOutputsFileListnull.txt
