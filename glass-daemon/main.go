@@ -74,7 +74,10 @@ func main() {
 	}
 
 	if runtime.GOOS == "darwin" {
+		conf.Name = "com.timeglass.glass-daemon"
 		conf.Option["UserService"] = true
+	} else if runtime.GOOS == "windows" {
+		conf.Name = "Timeglass" //windows style
 	}
 
 	d := &daemon{}
