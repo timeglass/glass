@@ -3,7 +3,7 @@
     <Product    Id="*"
                 Name="Timeglass"
                 Language="1033"
-                Version="0.6.2"
+                Version="0.6.0"
                 Manufacturer="Timeglass"
                 UpgradeCode="bbd242f4-61b0-4c1f-bf85-56f155747619">        
         
