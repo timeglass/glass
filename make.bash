@@ -55,10 +55,30 @@ function run_release {
 	pushd installers/pkg
 	./make.bash
 	popd
+}
 
-	cp 'installers/msi/bin/Timeglass Setup (x64).msi' bin
-	cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin
+function run_make_installer {
+	run_test
+	run_build
+	run_release_prepare_dirs
+
+	if [ "$GOOS" == "windows" ]; then
+		echo "Creating Windows installers..."
+		pushd installers/msi
+		./make.bash
+		popd
+		cp 'installers/msi/bin/Timeglass Setup (x64).msi' bin
+	fi
+
+	if [ "$GOOS" == "darwin" ]; then
+		echo "Creating OSX installers..."
+		pushd installers/pkg
+		./make.bash
+		popd
+		cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin
+	fi
 }  
+
 
 #choose command
 echo "Detected OS '$GOOS'"
@@ -69,6 +89,7 @@ case $1 in
 	"build-daemon" ) run_build_daemon ;;
 	"run-daemon" ) run_run_daemon ;;
 	"release" ) run_release ;;
+	"installer" ) run_make_installer ;;
 
 	#
 	# following commands are not portable
@@ -79,8 +100,9 @@ case $1 in
  	"publish-1" )
 		rm -fr bin/dist
 		mkdir -p bin/dist
-		mv 'bin/Timeglass Setup (x64).pkg' bin/dist/
-		mv 'bin/Timeglass Setup (x64).msi' bin/dist/
+		
+		#move the installers
+		mv bin/Timeglass* bin/dist/
 		for FOLDER in ./bin/*_* ; do \
 			NAME=`basename ${FOLDER}`_`cat VERSION` ; \
 			ARCHIVE=bin/dist/${NAME}.zip ; \
