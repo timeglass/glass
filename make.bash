@@ -45,6 +45,19 @@ function run_release {
 	run_test
 	run_build
 	run_release_prepare_dirs
+
+	echo "Creating Windows installers..."
+	pushd installers/msi
+	./make.bash
+	popd
+
+	echo "Creating OSX installers..."
+	pushd installers/pkg
+	./make.bash
+	popd
+
+	cp 'installers/msi/bin/Timeglass Setup (x64).msi' bin
+	cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin
 }  
 
 #choose command
@@ -66,6 +79,8 @@ case $1 in
  	"publish-1" )
 		rm -fr bin/dist
 		mkdir -p bin/dist
+		mv 'bin/Timeglass Setup (x64).pkg' bin/dist/
+		mv 'bin/Timeglass Setup (x64).msi' bin/dist/
 		for FOLDER in ./bin/*_* ; do \
 			NAME=`basename ${FOLDER}`_`cat VERSION` ; \
 			ARCHIVE=bin/dist/${NAME}.zip ; \
@@ -119,6 +134,22 @@ case $1 in
 		    --tag v`cat` \
 		    --name timeglass_`cat VERSION`_SHA256SUMS \
 		    --file bin/dist/timeglass_`cat VERSION`_SHA256SUMS
+		echo "done!"
+		echo "Uploading OSX installer..."
+		github-release upload \
+		    --user timeglass \
+		    --repo glass \
+		    --tag v`cat` \
+		    --name 'Timeglass Setup (x64).pkg' \
+		    --file 'bin/dist/Timeglass Setup (x64).pkg'
+		echo "done!"
+		echo "Uploading Windows installer..."
+		github-release upload \
+		    --user timeglass \
+		    --repo glass \
+		    --tag v`cat` \
+		    --name 'Timeglass Setup (x64).msi' \
+		    --file 'bin/dist/Timeglass Setup (x64).msi'
 		echo "done!"
  		;;
 	*) run_test ;;

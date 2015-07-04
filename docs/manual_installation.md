@@ -23,6 +23,6 @@ Check that this was done successfull by opening a new terminal window and runnin
 
 An important part of *Timeglass* is the monitoring of file system activity. For this it needs a small background process that is always running, lucky this service can be installed and started by running a single command: `glass install`, if the output is empty everything went as expected.
 
-_NOTE1: **On linux** this service needs to be installed for all accounts and requires you to use sudo: `sudo glass install`_
+_NOTE1: **On OSX and linux** this service is currently installed for all accounts and requires you to use sudo: `sudo glass install`_
 
 _NOTE2: **On Windows** this service requires administration privileges so either 'run as Administrator' or log in as the Administrator and run the install command_ 

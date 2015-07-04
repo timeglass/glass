@@ -26,8 +26,5 @@ echo "Building product...."
 productbuild --distribution distribution.xml \
 			  Timeglass.pkg
 
-
-# @todo, post-install scripts:
-#  - install/remove from PATH
-#  - install/remove service
-#  - sign package
+echo "Signing product..."
+productsign --sign "Developer ID Installer: A.L. VEER" Timeglass.pkg 'bin/Timeglass Setup (x64).pkg'

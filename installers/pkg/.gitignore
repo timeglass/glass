@@ -1,4 +1,5 @@
 glass-daemon/*
 glass/*
+bin/*
 
 *.pkg
