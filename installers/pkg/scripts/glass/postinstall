@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#remove cli symlink if it exists already
+if [ -f /usr/local/bin/glass ]; then
+	rm /usr/local/bin/glass 
+fi
+
+#create cli symlink
+ln -s $DSTROOT/glass /usr/local/bin/glass 
+chmod +x /usr/local/bin/glass
