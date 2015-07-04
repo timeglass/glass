@@ -16,7 +16,7 @@ import (
 )
 
 var ErrRequestFailed = errors.New("Couldn't reach background service, did you install it using 'glass install'?")
-var ErrTimerNotFound = errors.New("Couldn't find timer for this project, did you start one using 'glass start'?")
+var ErrTimerNotFound = errors.New("Couldn't find timer for this project, did you start one using 'glass init' or 'glass start'?")
 
 type Client struct {
 	endpoint string
