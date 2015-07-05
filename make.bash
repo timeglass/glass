@@ -47,7 +47,7 @@ function run_make_installer {
 		pushd installers/msi
 		./make.bash
 		popd
-		cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin/Timeglass\ `cat VERSION`\ Windows\ Setup\ \(x64\).msi
+		cp 'installers/msi/bin/Timeglass Setup (x64).msi' bin/Timeglass\ `cat VERSION`\ Windows\ Setup\ \(x64\).msi
 	fi
 
 	if [ "$GOOS" == "darwin" ]; then
