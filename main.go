@@ -29,6 +29,13 @@ func main() {
 	app.Usage = "Automated time tracking for code repositories"
 	app.Version = fmt.Sprintf("%s (%s)", Version, Build)
 
+	app.Flags = []cli.Flag{
+		cli.BoolFlag{
+			Name:  "silent,s",
+			Usage: "supress all output over Stderr",
+		},
+	}
+
 	cmds := []Command{
 		command.NewInstall(),   //install daemon and start service
 		command.NewUninstall(), //stop daemon and uninstall service
