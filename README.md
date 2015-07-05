@@ -4,6 +4,7 @@
 
 Fully automated time tracking for Git repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in [Go](http://golang.org/) and runs 100% on your own workstation: no internet or account registration required. 
 
+
 __Features:__
 
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout` or upon detecting any file activity in the repository
