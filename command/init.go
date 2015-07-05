@@ -23,11 +23,11 @@ func (c *Init) Name() string {
 }
 
 func (c *Init) Description() string {
-	return fmt.Sprintf("Install hooks for the current repository, if hooks already exists they are truncated and rewritten.")
+	return fmt.Sprintf("Install hooks, start timer and pull measuremnets for the current repository, if hooks already exists they are truncated and rewritten.")
 }
 
 func (c *Init) Usage() string {
-	return "Install Timeglass for the current repository"
+	return "Initiate Timeglass for the current repository"
 }
 
 func (c *Init) Flags() []cli.Flag {
@@ -39,6 +39,7 @@ func (c *Init) Action() func(ctx *cli.Context) {
 }
 
 func (c *Init) Run(ctx *cli.Context) error {
+	c.Println("Writing version control hooks...")
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
@@ -54,6 +55,20 @@ func (c *Init) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to write hooks: {{err}}", err)
 	}
 
-	fmt.Println("Timeglass: hooks written")
-	return NewPull().Run(ctx)
+	c.Println("Hooks written!")
+	err = NewStart().Run(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = NewPull().Run(ctx)
+	if err != nil {
+		if errwrap.Contains(err, vcs.ErrNoRemote.Error()) {
+			c.Println("No remote found, skipping pull")
+		} else {
+			return err
+		}
+	}
+
+	return nil
 }

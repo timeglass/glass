@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<installer-gui-script minSpecVersion="1">
+    <pkg-ref id="com.timeglass.glass"/>
+    <pkg-ref id="com.timeglass.glass-daemon"/>
+    <options customize="never" require-scripts="false"/>
+    <choices-outline>
+        <line choice="default">
+            <line choice="com.timeglass.glass"/>
+            <line choice="com.timeglass.glass-daemon"/>
+        </line>
+    </choices-outline>
+    <choice id="default"/>
+    <choice id="com.timeglass.glass" visible="false">
+        <pkg-ref id="com.timeglass.glass"/>
+    </choice>
+    <pkg-ref id="com.timeglass.glass" version="0.6.0" onConclusion="none">glass.pkg</pkg-ref>
+    <choice id="com.timeglass.glass-daemon" visible="false">
+        <pkg-ref id="com.timeglass.glass-daemon"/>
+    </choice>
+    <pkg-ref id="com.timeglass.glass-daemon" version="0.6.0" onConclusion="none">glass-daemon.pkg</pkg-ref>
+</installer-gui-script>

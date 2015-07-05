@@ -1,6 +1,7 @@
 package command
 
 import (
+	"io/ioutil"
 	"log"
 	"os"
 
@@ -13,15 +14,19 @@ type command struct {
 
 func newCommand() *command {
 	return &command{
-		log.New(os.Stderr, "", log.LstdFlags),
+		log.New(os.Stderr, "glass: ", log.Ltime),
 	}
 }
 
 func (c *command) Action(fn func(c *cli.Context) error) func(ctx *cli.Context) {
 	return func(ctx *cli.Context) {
+		if ctx.GlobalBool("silent") {
+			c.Logger = log.New(ioutil.Discard, "", 0)
+		}
+
 		err := fn(ctx)
 		if err != nil {
-			c.Fatalf("[Timeglass Error]: %s", err)
+			c.Fatal(err)
 			return
 		}
 	}

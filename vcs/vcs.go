@@ -7,17 +7,19 @@ import (
 	"time"
 )
 
+var ErrNoRemote = errors.New("Version control has no remote")
 var ErrNoRemoteTimeData = errors.New("Remote doesn't have any time data")
 var ErrNoLocalTimeData = errors.New("Local clone doesn't have any time data")
 var ErrNoCommitTimeData = errors.New("Commit doesn't have any time data")
 
 type VCS interface {
 	Name() string
+	Root() string
 	IsAvailable() bool
 	Hook() error
 	Push(string, string) error
 	Pull(string) error
-	DefaultRemote() string
+	DefaultRemote() (string, error)
 	Persist(time.Duration) error
 	Show(string) (TimeData, error)
 }
@@ -39,5 +41,5 @@ func GetVCS(dir string) (VCS, error) {
 		checked = append(checked, vcs.Name())
 	}
 
-	return nil, fmt.Errorf("No supported version system found in '%s', checked for: %s", dir, strings.Join(checked, ","))
+	return nil, fmt.Errorf("No supported Version Control System found in '%s', checked for: %s", dir, strings.Join(checked, ","))
 }

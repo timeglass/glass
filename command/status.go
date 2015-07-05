@@ -6,12 +6,13 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
-	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/config"
+	daemon "github.com/timeglass/glass/glass-daemon"
+	"github.com/timeglass/glass/vcs"
 )
 
 type Status struct {
@@ -27,19 +28,18 @@ func (c *Status) Name() string {
 }
 
 func (c *Status) Description() string {
-	return ""
+	return fmt.Sprintf("Asks the deamon for general information and the specifics of the current timer, it allows for arbritary formatting of the current time measurement.")
 }
 
 func (c *Status) Usage() string {
-	return "Show info on the running timer"
+	return "Show info on the timer for this repository"
 }
 
 func (c *Status) Flags() []cli.Flag {
 	return []cli.Flag{
-		cli.BoolFlag{
-			Name:  "time-only",
-			Usage: "Only display the time",
-		}}
+		cli.StringFlag{Name: "template,t", Value: "", Usage: "a template that allows for arbritary formatting of the time output"},
+		cli.BoolFlag{Name: "commit-template", Usage: "use the commit template from the configuration, this overwrites and custom template using -t"},
+	}
 }
 
 func (c *Status) Action() func(ctx *cli.Context) {
@@ -52,80 +52,76 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	m := model.New(dir)
-	info, err := m.ReadDaemonInfo()
+	vc, err := vcs.GetVCS(dir)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
+		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	conf, err := m.ReadConfig()
+	sysdir, err := daemon.SystemTimeglassPath()
 	if err != nil {
-		//@todo find a more elegant way to 'print' this for script usage
-		if ctx.Bool("time-only") {
-			return nil
-		}
+		return errwrap.Wrapf(fmt.Sprintf("Failed to get system config path: {{err}}"), err)
+	}
 
+	conf, err := config.ReadConfig(vc.Root(), sysdir)
+	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}
 
-	client := NewClient(info)
-	status, err := client.GetStatus()
-	if err != nil {
-		if err == ErrDaemonDown {
-			//if called from hook, don't interrupt
-			if ctx.Bool("time-only") {
-				return nil
-			}
+	client := NewClient()
 
-			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
+	//fetch information on overall daemon
+	c.Printf("Fetching daemon info...")
+	dinfo, err := client.Info()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch daemon info: {{err}}"), err)
+	}
+
+	curr, _ := strconv.Atoi(strings.Replace(dinfo["version"].(string), ".", "", 2))
+	recent, _ := strconv.Atoi(strings.Replace(dinfo["newest_version"].(string), ".", "", 2))
+	if curr != 0 && recent > curr {
+		c.Println("A new version is available, please upgrade: https://github.com/timeglass/glass/releases")
+	}
+
+	//fetch information on the timer specific to this directory
+	c.Printf("Fetching timer info...")
+	timer, err := client.ReadTimer(vc.Root())
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch timer: {{err}}"), err)
+	}
+
+	if reason := timer.HasFailed(); reason != "" {
+		c.Printf("Timer has failed: %s", reason)
+	} else {
+		if timer.IsPaused() {
+			c.Printf("Timer is currently: PAUSED")
 		} else {
-			return err
+			c.Printf("Timer is currently: RUNNING")
 		}
 	}
 
-	t, err := time.ParseDuration(status.Time)
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to parse '%s' as a time duration: {{err}}", status.Time), err)
+	tmpls := ctx.String("template")
+	if ctx.Bool("commit-template") {
+		tmpls = conf.CommitMessage
 	}
 
-	if !ctx.Bool("time-only") {
-		//simple semver check
-		curr, _ := strconv.Atoi(strings.Replace(status.CurrentVersion, ".", "", 2))
-		recent, _ := strconv.Atoi(strings.Replace(status.MostRecentVersion, ".", "", 2))
-		if curr != 0 && recent > curr {
-			fmt.Println("A new version of Timeglass is available, please upgrade from https://github.com/timeglass/glass/releases.")
-		}
-	} else if t.Seconds() == 0 {
-		//for script usage we return nothing when there has zero
-		//time elapsed, this prevents empty bracke
-		return nil
-	}
+	//we got some template specified
+	if tmpls != "" {
 
-	//parse temlate and only report error if we're talking to a human
-	tmpl, err := template.New("commit-msg").Parse(conf.CommitMessage)
-	if err != nil {
-		//@todo find a more elegant way to 'print' this for script usage
-		if ctx.Bool("time-only") {
-			return nil
-		} else {
+		//parse temlate and only report error if we're talking to a human
+		tmpl, err := template.New("commit-msg").Parse(tmpls)
+		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to parse commit_message: '%s' in configuration as a text/template: {{err}}", conf.CommitMessage), err)
 		}
-	}
 
-	//execute template and write to stdout
-	err = tmpl.Execute(os.Stdout, t)
-	if err != nil {
-		//@todo find a more elegant way to 'print' this for script usage
-		if ctx.Bool("time-only") {
-			return nil
-		} else {
-			return errwrap.Wrapf(fmt.Sprintf("Failed to execute commit_message: template for time '%s': {{err}}", t), err)
+		//execute template and write to stdout
+		err = tmpl.Execute(os.Stdout, timer.Time())
+		if err != nil {
+			return errwrap.Wrapf(fmt.Sprintf("Failed to execute commit_message: template for time '%s': {{err}}", timer.Time()), err)
 		}
-	}
 
-	//end with newline if we're printing for a human
-	if !ctx.Bool("time-only") {
-		fmt.Println()
+	} else {
+		//just print
+		c.Printf("Timer reads: %s", timer.Time())
 	}
 
 	return nil

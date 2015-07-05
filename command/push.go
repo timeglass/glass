@@ -7,8 +7,10 @@ import (
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/mattn/go-isatty"
 
-	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/config"
+	daemon "github.com/timeglass/glass/glass-daemon"
 	"github.com/timeglass/glass/vcs"
 )
 
@@ -33,12 +35,7 @@ func (c *Push) Usage() string {
 }
 
 func (c *Push) Flags() []cli.Flag {
-	return []cli.Flag{
-		cli.BoolFlag{
-			Name:  "from-hook",
-			Usage: "Indicate it is called from a git, now expects refs on stdin",
-		},
-	}
+	return []cli.Flag{}
 }
 
 func (c *Push) Action() func(ctx *cli.Context) {
@@ -51,8 +48,12 @@ func (c *Push) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	m := model.New(dir)
-	conf, err := m.ReadConfig()
+	sysdir, err := daemon.SystemTimeglassPath()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to get system config path: {{err}}"), err)
+	}
+
+	conf, err := config.ReadConfig(dir, sysdir)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}
@@ -60,7 +61,7 @@ func (c *Push) Run(ctx *cli.Context) error {
 	//hooks require us require us to check the refs that are pushed over stdin
 	//to prevent inifinte push loop
 	refs := ""
-	if ctx.Bool("from-hook") {
+	if !isatty.IsTerminal(os.Stdin.Fd()) {
 		bytes, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
 			return errwrap.Wrapf("Failed to read from stdin: {{err}}", err)
@@ -89,13 +90,16 @@ func (c *Push) Run(ctx *cli.Context) error {
 
 	remote := ctx.Args().First()
 	if remote == "" {
-		remote = vc.DefaultRemote()
+		remote, err = vc.DefaultRemote()
+		if err != nil {
+			return errwrap.Wrapf("Failed to determine default remote: {{err}}", err)
+		}
 	}
 
 	err = vc.Push(remote, refs)
 	if err != nil {
 		if err == vcs.ErrNoLocalTimeData {
-			fmt.Printf("Timeglass: local clone has no time data (yet), nothing to push to '%s'. Start a timer and commit changes to record local time data.\n", remote)
+			c.Printf("Local clone has no time data (yet), nothing to push to '%s'. Start a timer and commit changes to record local time data.\n", remote)
 			return nil
 		}
 

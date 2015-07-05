@@ -5,94 +5,113 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/signal"
-	"strings"
-	"time"
+	"runtime"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
-
-	"github.com/timeglass/glass/model"
-	"github.com/timeglass/snow/monitor"
+	"github.com/timeglass/glass/_vendor/github.com/kardianos/service"
 )
 
 var Version = "0.0.0"
 var Build = "gobuild"
 
-var mbu = flag.Duration("mbu", time.Minute, "The minimal billable unit")
-var bind = flag.String("bind", ":0", "Address to bind the Daemon to")
-var force = flag.Bool("force", false, "Force start the Daemon")
+type daemon struct {
+	keeper *Keeper
+	server *Server
+}
+
+func (p *daemon) Start(s service.Service) error {
+	var err error
+
+	path, err := SystemTimeglassPathCreateIfNotExist()
+	if err != nil {
+		return errwrap.Wrapf("Failed to find Timeglass system path: {{err}}", err)
+	}
+
+	p.keeper, err = NewKeeper(path)
+	if err != nil {
+		return errwrap.Wrapf("Failed to create time keeper: {{err}}", err)
+	}
+
+	bind := "127.0.0.1:3838"
+	p.server, err = NewServer(bind, p.keeper)
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create server on '%s': {{err}}, is the service already running?", bind), err)
+	}
+
+	go p.server.checkVersion()
+	go p.keeper.Start()
+	go p.run()
+	return nil
+}
+
+func (p *daemon) Stop(s service.Service) error {
+	p.keeper.Stop()
+	return p.server.Stop()
+}
+
+func (p *daemon) run() error {
+	return p.server.Start()
+}
 
 func main() {
 	flag.Parse()
 
-	//by default timeout is four times the mbu
-	//@todo make configurable
-	timer := NewTimer(*mbu, 4*(*mbu))
-	svr, err := NewServer(*bind, timer)
+	//setup logging to a file
+	l, err := NewLogger(os.Stderr)
+	if err != nil {
+		log.Fatalf("Failed to create logger: %s", err)
+	}
+
+	log.SetOutput(l)
+	defer l.Close()
+
+	//initialize service
+	conf := &service.Config{
+		Name:        "timeglass",
+		DisplayName: "Timeglass",
+		Description: "Automated time tracking daemon that monitors file changes",
+		Option:      map[string]interface{}{},
+	}
+
+	if runtime.GOOS == "darwin" {
+		conf.Name = "com.timeglass.glass-daemon"
+
+		// @todo technically this is possible but
+		// results in a automated installer that
+		// has some serious usability issues
+		// conf.Option["UserService"] = true
+	} else if runtime.GOOS == "windows" {
+
+		//WATCH OUT: timeglass has a windows installer
+		//that takes care of installing and starting services
+		//in addition to the command line
+
+		conf.Name = "Timeglass" //windows style
+	}
+
+	d := &daemon{}
+	s, err := service.New(d, conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	//check version without delaying start times
-	go svr.checkVersion()
-
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatal(errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err))
-	}
-
-	monitor, err := monitor.New(dir, monitor.Recursive, time.Millisecond*50)
-	if err != nil {
-		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for directory '%s': {{err}}"), err))
-	}
-
-	go func() {
-		for err := range monitor.Errors() {
-			log.Printf("Monitor Error: %s", err)
+	//handle service controls
+	if len(flag.Args()) > 0 {
+		err = service.Control(s, flag.Args()[0])
+		if err != nil {
+			ReportServiceControlErrors(err)
 		}
+		return
+	}
+
+	//start daemon
+	log.Printf("Daemon launched, writing logs to '%s'", l.Path())
+	defer func() {
+		log.Printf("Daemon terminated\n\n")
 	}()
 
-	//whenever _something_ happens in any directory, wakeup the timer
-	timer.Wakeup, err = monitor.Start()
+	err = s.Run()
 	if err != nil {
-		log.Fatal(errwrap.Wrapf(fmt.Sprintf("Failed to start monitor for directory '%s': {{err}}"), err))
-	}
-
-	m := model.New(dir)
-	info, err := m.ReadDaemonInfo()
-	if err != nil {
-		log.Fatal(errwrap.Wrapf("Failed read Daemon info: {{err}}", err))
-	}
-
-	if info.Addr != "" && !*force {
-		log.Fatal("It appears another Daemon is already running or a previous instance didn't shutdown properly, use -force to force start.")
-	}
-
-	info = model.NewDeamon(dir, svr.Addr())
-	err = m.UpsertDaemonInfo(info)
-	if err != nil {
-		log.Fatal(errwrap.Wrapf("Failed write Daemon info: {{err}}", err))
-	}
-
-	sig := make(chan os.Signal)
-	signal.Notify(sig, os.Interrupt)
-	go func() {
-		<-sig
-		svr.Stop()
-	}()
-
-	log.Printf("Listening on '%s'", svr.Addr())
-	err = svr.Start()
-	if err != nil && !strings.Contains(err.Error(), "closed network connection") {
 		log.Fatal(err)
 	}
-
-	log.Printf("Writing information to database...")
-	info.Addr = ""
-	err = m.UpsertDaemonInfo(info)
-	if err != nil {
-		log.Fatal(errwrap.Wrapf("Failed write Daemon info: {{err}}", err))
-	}
-
-	log.Printf("Done")
 }

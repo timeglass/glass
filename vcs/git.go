@@ -21,30 +21,28 @@ const (
 	TOTAL_PREFIX = "total="
 )
 
-var PostCheckoutTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-# when checkout is a branch, start timer
-if [ $3 -eq 1 ]; then
-   glass start;
-fi
-`))
-
 var PrepCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 # only add time to template and message sources
 # @see http://git-scm.com/docs/githooks#_prepare_commit_msg
 case "$2" in
 message|template) 
-	printf "$(cat $1)$(glass status --time-only)" > "$1" ;;
+	# -m method
+	printf "$(cat $1)$(glass -s status --commit-template)" > "$1" ;;
+"")
+	# interactive method
+	printf "$(glass -s status --commit-template)\n$(cat $1)" > "$1" ;;	
 esac
 `))
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
-#always reset after commit
-glass lap --from-hook
+#persist (punch) to newly created commit and reset the timer
+glass -s status -t "{{"{{"}}.{{"}}"}}" | glass punch
+glass reset
 `))
 
 var PrePushTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #push time data
-glass push $1 --from-hook
+glass push $1
 `))
 
 type gitTimeData struct {
@@ -54,24 +52,51 @@ type gitTimeData struct {
 func (g *gitTimeData) Total() time.Duration { return g.total }
 
 type Git struct {
-	dir string
+	dir  string
+	root string
+	init string
 }
 
 func NewGit(dir string) *Git {
 	return &Git{
-		dir: filepath.Join(dir, ".git"),
+		init: dir,
 	}
 }
 
-func (g *Git) DefaultRemote() string { return "origin" }
-func (g *Git) Name() string          { return "git" }
+func (g *Git) Name() string { return "git" }
 func (g *Git) IsAvailable() bool {
-	fi, err := os.Stat(g.dir)
-	if err != nil || !fi.IsDir() {
+	outbuff := bytes.NewBuffer(nil)
+	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
+	cmd.Stdout = outbuff
+
+	err := cmd.Run()
+	if err != nil {
 		return false
 	}
 
+	g.root = strings.TrimSpace(outbuff.String())
+	g.dir = filepath.Join(g.root, ".git")
 	return true
+}
+
+func (g *Git) Root() string {
+	return g.root
+}
+
+func (g *Git) DefaultRemote() (string, error) {
+	outbuff := bytes.NewBuffer(nil)
+	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}")
+	cmd.Stdout = outbuff
+
+	err := cmd.Run()
+	if err != nil {
+		return "", ErrNoRemote
+	}
+
+	//outbuff should contain full path to remote branch that is tracked for
+	//the current local branch (e.g origin/remote_branch), we are only interested
+	//in the first part as notes are kept in their own branch
+	return strings.SplitN(outbuff.String(), "/", 2)[0], nil
 }
 
 func (g *Git) Show(commit string) (TimeData, error) {
@@ -192,28 +217,11 @@ func (g *Git) Push(remote string, refs string) error {
 func (g *Git) Hook() error {
 	hpath := filepath.Join(g.dir, "hooks")
 
-	//post checkout: start()
-	postchpath := filepath.Join(hpath, "post-checkout")
-	postchf, err := os.Create(postchpath)
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-checkout '%s': {{err}}", postchf.Name()), err)
-	}
-
-	err = os.Chmod(postchpath, 0766)
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to make post-checkout file '%s' executable: {{err}}", hpath), err)
-	}
-
-	err = PostCheckoutTmpl.Execute(postchf, struct{}{})
-	if err != nil {
-		return errwrap.Wrapf("Failed to run post-checkout template: {{err}}", err)
-	}
-
 	//prepare commit msg: status()
 	prepcopath := filepath.Join(hpath, "prepare-commit-msg")
 	prepcof, err := os.Create(prepcopath)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create prepare-commit-msg  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create prepare-commit-msg  '%s': {{err}}", prepcof.Name()), err)
 	}
 
 	err = os.Chmod(prepcopath, 0766)
@@ -230,7 +238,7 @@ func (g *Git) Hook() error {
 	postcopath := filepath.Join(hpath, "post-commit")
 	postcof, err := os.Create(postcopath)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create post-commit '%s': {{err}}", postcof.Name()), err)
 	}
 
 	err = os.Chmod(postcopath, 0766)
@@ -247,7 +255,7 @@ func (g *Git) Hook() error {
 	prepushpath := filepath.Join(hpath, "pre-push")
 	prepushf, err := os.Create(prepushpath)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to create pre-push  '%s': {{err}}", postchf.Name()), err)
+		return errwrap.Wrapf(fmt.Sprintf("Failed to create pre-push  '%s': {{err}}", prepushf.Name()), err)
 	}
 
 	err = os.Chmod(prepushpath, 0766)

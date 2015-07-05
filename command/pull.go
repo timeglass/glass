@@ -51,19 +51,22 @@ func (c *Pull) Run(ctx *cli.Context) error {
 
 	remote := ctx.Args().First()
 	if remote == "" {
-		remote = vc.DefaultRemote()
+		remote, err = vc.DefaultRemote()
+		if err != nil {
+			return errwrap.Wrapf("Failed to determine default remote: {{err}}", err)
+		}
 	}
 
 	err = vc.Pull(remote)
 	if err != nil {
 		if err == vcs.ErrNoRemoteTimeData {
-			fmt.Printf("Timeglass: remote '%s' has no time data (yet), nothing to pull\n", remote)
+			c.Printf("Remote '%s' has no time data (yet), nothing to pull\n", remote)
 			return nil
 		}
 
 		return errwrap.Wrapf("Failed to pull time data: {{err}}", err)
 	}
 
-	fmt.Println("Timeglass: time data fetched successfully")
+	c.Println("Time data was pulled successfully")
 	return nil
 }

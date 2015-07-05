@@ -1,0 +1,26 @@
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+      <WixTargetsPath>$(MSBuildExtensionsPath)\Microsoft\WiX\v3.x\Wix.targets</WixTargetsPath>
+      <OutputName>Timeglass Setup (x64)</OutputName>
+      <OutputType>Package</OutputType>
+      <DefineSolutionProperties>false</DefineSolutionProperties>
+      <OutputPath>bin\</OutputPath>
+  </PropertyGroup>
+
+  <Import Project="$(WixTargetsPath)" />    
+  <PropertyGroup>
+    <Platform>x64</Platform>
+    <ProductVersion>3.5</ProductVersion>
+    <ProjectGuid>{3f8a1956-3256-46e1-8477-a99cb06b6c23}</ProjectGuid>
+    <SchemaVersion>2.0</SchemaVersion>
+    
+    <IntermediateOutputPath>obj\</IntermediateOutputPath>
+    <SuppressValidation>False</SuppressValidation>
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    <SuppressSpecificWarnings />
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <Compile Include="Product.wxs" />
+  </ItemGroup>
+</Project>

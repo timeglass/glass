@@ -1,0 +1,32 @@
+#!/bin/bash
+exec > /tmp/glass-install.log
+env
+
+# DSTROOT=/Users/advanderveer/Documents/Projects/go/bin
+DAEMON=$DSTROOT/glass-daemon
+# DAEMON=/Users/advanderveer/Documents/Projects/go/bin/glass-daemon
+
+#remove cli symlink if it exists already
+if [ -f /usr/local/bin/glass-daemon ]; then
+	echo "Removing old daemon symlink..."
+	rm /usr/local/bin/glass-daemon
+fi
+
+#create cli symlink
+echo "Adding new daemon symlink..."
+ln -s $DSTROOT/glass-daemon /usr/local/bin/glass-daemon
+chmod +x /usr/local/bin/glass-daemon
+
+# unload agent if its loadedecho "aaaaa" > /tmp/cccccc
+if /bin/launchctl list | grep -q "com.timeglass.glass-daemon"
+then
+	echo "Stopping and uninstalling old daemon..."
+	$DSTROOT/glass-daemon stop
+	$DSTROOT/glass-daemon uninstall
+fi
+
+#install
+echo "Installing and starting new daemon..."
+$DSTROOT/glass-daemon install
+$DSTROOT/glass-daemon start
+echo "Done!"

@@ -7,7 +7,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
-	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/vcs"
 )
 
 type Stop struct {
@@ -23,11 +23,11 @@ func (c *Stop) Name() string {
 }
 
 func (c *Stop) Description() string {
-	return fmt.Sprintf("Terminates the timer process gracefully, it no timer is running it returns an error.")
+	return fmt.Sprintf("Timer for the current repository is removed and any measurements are discarde without being saved")
 }
 
 func (c *Stop) Usage() string {
-	return "Shutdown the timer, discarding the current measurement"
+	return "Shuts down the timer and discard any measurements"
 }
 
 func (c *Stop) Flags() []cli.Flag {
@@ -44,22 +44,19 @@ func (c *Stop) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	m := model.New(dir)
-	info, err := m.ReadDaemonInfo()
+	vc, err := vcs.GetVCS(dir)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
+		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	client := NewClient(info)
-	err = client.Call("timer.stop")
+	c.Println("Deleting timer...")
+
+	client := NewClient()
+	err = client.DeleteTimer(vc.Root())
 	if err != nil {
-		if err == ErrDaemonDown {
-			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
-		} else {
-			return err
-		}
+		return errwrap.Wrapf(fmt.Sprintf("Failed to delete timer: {{err}}"), err)
 	}
 
-	fmt.Println("Timeglass: timer stopped")
+	c.Println("Timer deleted!")
 	return nil
 }

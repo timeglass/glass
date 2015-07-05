@@ -6,9 +6,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/mattn/go-isatty"
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/mattn/go-isatty"
 
 	"github.com/timeglass/glass/vcs"
 )
@@ -61,7 +61,7 @@ func (c *Sum) Run(ctx *cli.Context) error {
 			commits = append(commits, scanner.Text())
 		}
 		if err := scanner.Err(); err != nil {
-			fmt.Println(err)
+			c.Println(err)
 		}
 	} else {
 		if ctx.Args().First() != "" {
@@ -96,6 +96,6 @@ func (c *Sum) Run(ctx *cli.Context) error {
 		total += data.Total()
 	}
 
-	fmt.Println(total)
+	fmt.Fprintln(os.Stdout, total)
 	return nil
 }

@@ -7,7 +7,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
-	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/vcs"
 )
 
 type Pause struct {
@@ -44,22 +44,19 @@ func (c *Pause) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	m := model.New(dir)
-	info, err := m.ReadDaemonInfo()
+	vc, err := vcs.GetVCS(dir)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
+		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	client := NewClient(info)
-	err = client.Call("timer.pause")
+	c.Printf("Pausing timer...")
+
+	client := NewClient()
+	err = client.PauseTimer(vc.Root())
 	if err != nil {
-		if err == ErrDaemonDown {
-			return errwrap.Wrapf(fmt.Sprintf("No timer appears to be running for '%s': {{err}}", dir), err)
-		} else {
-			return err
-		}
+		return errwrap.Wrapf(fmt.Sprintf("Failed to pause timer: {{err}}"), err)
 	}
 
-	fmt.Println("Timeglass: timer paused")
+	c.Printf("Done!")
 	return nil
 }

@@ -3,12 +3,11 @@ package command
 import (
 	"fmt"
 	"os"
-	"os/exec"
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
-	"github.com/timeglass/glass/model"
+	"github.com/timeglass/glass/vcs"
 )
 
 type Start struct {
@@ -24,7 +23,7 @@ func (c *Start) Name() string {
 }
 
 func (c *Start) Description() string {
-	return fmt.Sprintf("Starts the daemon that is reposible for tracking time for the current repository. If the daemon is already running, this operation is a no-op.")
+	return fmt.Sprintf("Creates a new timer for the current repository, if it is currently paused the timer continues.")
 }
 
 func (c *Start) Usage() string {
@@ -45,33 +44,19 @@ func (c *Start) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	m := model.New(dir)
-	info, err := m.ReadDaemonInfo()
+	vc, err := vcs.GetVCS(dir)
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to get Daemon address: {{err}}"), err)
+		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	conf, err := m.ReadConfig()
+	c.Println("Starting timer...")
+
+	client := NewClient()
+	err = client.CreateTimer(vc.Root())
 	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
+		return errwrap.Wrapf("Failed to create timer: {{err}}", err)
 	}
 
-	client := NewClient(info)
-	err = client.Call("timer.start")
-	if err != nil {
-		if err != ErrDaemonDown {
-			return err
-		}
-
-		//either the daemon broke/crashed or nothing is running at all, either way: use
-		//-force to make sure starting a new one succeeds
-		cmd := exec.Command("glass-daemon", "-force", fmt.Sprintf("--mbu=%s", conf.MBU))
-		err := cmd.Start()
-		if err != nil {
-			return errwrap.Wrapf(fmt.Sprintf("Failed to start Daemon: {{err}}"), err)
-		}
-	}
-
-	fmt.Println("Timeglass: timer started")
+	c.Println("Timer started!")
 	return nil
 }

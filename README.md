@@ -6,12 +6,11 @@ Fully automated time tracking for Git repositories. It uses hooks and file monit
 
 __Features:__
 
-- The timer __automatically starts__ when you switch to a (new) branch using `git checkout`
+- The timer __automatically starts__ when you switch to a (new) branch using `git checkout` or upon detecting any file activity in the repository
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
 - The time you spent is automatically added to the next `git commit`
-- The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1m. 
-- Spent time is stored as metadata using [git-notes](https://git-scm.com/docs/git-notes) and pushed automatically
-
+- The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1 minute. 
+- Spent time is stored as metadata using [git-notes](https://git-scm.com/docs/git-notes) and can be pushed and stored automatically to any remote repository (e.g Github)
 
 __Currently Supported:__
 
@@ -19,12 +18,15 @@ __Currently Supported:__
 - Version Control: __Git__
 
 ## Getting Started
-1. Download the [latest release](https://github.com/timeglass/glass/releases/latest) for your platform and unzip the contents into a directory that is in your systems PATH (e.g /usr/local/bin).   
+1. Download and install the latest release using any one of your preferred methods:
+	
+	1. Automatic [installers](https://github.com/timeglass/glass/releases/latest) for 64bit  _OSX_ and _Windows_ 
+	2. [Manual installion](/docs/manual_installation.md) with 64bit precompiled Binaries for OSX, Linux and Windows 
+	3. [Manual installion](/docs/manual_installation.md) by __building from source__ for all other architectures
 
-  _Note 1: We currently only support 64-bit prebuild binaries, for other architectures please build from source (see below)._  
-  _Note 2: For Windows, the documentation assumes you're using Git through a [bash-like CLI](https://msysgit.github.io/) but nothing about the implementation prevents you from using another approach._
+  _Note: For Windows, the documentation assumes you're using Git through a [bash-like CLI](https://msysgit.github.io/) but nothing about the implementation prevents you from using another approach._
 
-2. Use your terminal to navigate to the repository that contains the project you would like to track and install the hooks:
+2. Use your terminal to navigate to the repository that contains the project you would like to track and then initiate Timeglass:
 
  ```sh
  cd ~/my-git-project
@@ -33,9 +35,16 @@ __Currently Supported:__
  
  _NOTE: you'll have to run this once per clone_
 
-3. Start the timer by creating a new branch: 
+3. The timer starts right away but will pause soon unless it detects file activity or the checkout of a branch: 
 
   ```sh
+  # see if the timer is running or paused:
+  glass status
+
+  # the timer keeps running while there is file activity
+  echo "pretending to work..." > ./my_file.go
+  
+  # or branches are checked out
   git checkout -b "testing_timeglass"
   ```
   
@@ -49,7 +58,7 @@ __Currently Supported:__
 5. Verify that the time was indeed registered correctly by looking at your commit log:
 
   ```sh
-  git log -n 1
+  git log -n 1 --show-notes=time-spent
   ```
 
 ## What's Next?
@@ -63,25 +72,14 @@ And ofcourse, you'll always have the options to uninstall:
 
 - [Uninstalling Timeglass](/docs/uninstall.md)
 
-## Building from Source
-First, you'll need install the go toolchain, instructions are [here](https://golang.org/doc/install). With Go installed you can simply run `go get` for _both_ binaries:
-
-```
-go get -u github.com/timeglass/glass
-go get -u github.com/timeglass/glass/glass-daemon
-```
-
-The source code will now be in your workspace and binaries are found in `$GOPATH/bin`, happy hacking!
-
 ## Roadmap, input welcome!
 
-- __Supporting Other VCS:__ Timeglass currently only works for git repositories, mainly due to the number of hooks it provides. _What other version control systems would you like to see implemented? Input welcome [here](https://github.com/Timeglass/glass/issues/10)_
+- __Supporting Other VCS:__ Timeglass currently only works for git repositories, mainly due to the number of hooks it requires. _What other version control systems would you like to see implemented? Input welcome [here](https://github.com/Timeglass/glass/issues/10)_
 
 ## Known Issues
 
 - __Handling `git stash`:__ Git has the ability to stash work for a later commit prior to switching branches. Currently the timer unable to detect this; adding extra time to next commit. Input welcome [here](https://github.com/Timeglass/glass/issues/3)
-- __OS Restarts:__ Whenever the OS shuts down the repository might still contain uncommited work and a running timer, currently the timer is not restarted when this happens. _Input on how to achieve this is welcome [here](https://github.com/Timeglass/glass/issues/8)_
-- __Network Volumes:__ Projects that are kept on network volumes (e.g using NFS) are known to have flaky support for file monitoring, especially on Linux (using inotify). This means automatic unpausing of the timer when editing a file might be broken in such projects. *I'm looking for cases that experience such problem, or other information that might be of help over* [here](https://github.com/timeglass/glass/issues/36)
+- __Network Volumes:__ Projects that are kept on network volumes (e.g using NFS) are known to have flaky support for file monitoring. This means timers might error on reboot as network drives weren't available, or the automatic unpausing of the timer might be broken in such projects. *I'm looking for cases that experience such problem, or other information that might be of help over* [here](https://github.com/timeglass/glass/issues/36)
 
 ## Contributors
 in alphabetical order:
