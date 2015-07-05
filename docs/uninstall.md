@@ -13,5 +13,5 @@ That being said, you can do the following in order to remove Timeglass from a si
 If you would like to continue and remove Timeglass from your system entirely, you can continue with the following:
 
 1. Uninstall the background process by running `sudo glass uninstall`. If its not running thats OK, you can skip this step. Windows requires you to run this command as the administrator.
-2. Remove the metadata directory: `/Library/Timeglass` on OSX, `/var/lib/timeglass` on Linux and `C:/ProgramData/Timeglass` on Windows.
+2. Remove the system-wide data directory: `/Library/Timeglass` on OSX, `/var/lib/timeglass` on Linux and `%PROGRAMDATA%\Timeglass` or `%ALLUSERSPROFILE%\Timeglass` on Windows.
 3. Remove the binaries itself from were you installed them, they're named `glass` and `glass-daemon`.

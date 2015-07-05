@@ -8,7 +8,16 @@ Timeglass can be configured by creating a `timeglass.json` file in the root of t
 	"auto_push": true
 }
 ```
-Are you interested in configuring anything else? [let us know](https://github.com/Timeglass/glass/issues/7)
+
+Alternatively, you can place a `timeglass.json` file with the same structure into any of the following locations to provide default configuration for all projects on the system:
+
+- __OSX:__ /Library/Timeglass
+- __Linux:__ /var/lib/timeglass
+- __Windows:__ %PROGRAMDATA%\Timeglass or else %ALLUSERSPROFILE%\Timeglass
+
+
+# Options:
+Below are all the possible configuration options, are you interested in configuring anything else? [let us know](https://github.com/Timeglass/glass/issues/7)
 
 ## MBU
 __key__: `mbu`  
