@@ -36,7 +36,7 @@ esac
 
 var PostCommitTmpl = template.Must(template.New("name").Parse(`#!/bin/sh
 #persist (punch) to newly created commit and reset the timer
-glass status -t "{{"{{"}}.{{"}}"}}" | glass punch
+glass -s status -t "{{"{{"}}.{{"}}"}}" | glass punch
 glass reset
 `))
 
