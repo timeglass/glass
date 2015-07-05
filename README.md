@@ -4,7 +4,6 @@
 
 Fully automated time tracking for Git repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in [Go](http://golang.org/) and runs 100% on your own workstation: no internet or account registration required. 
 
-
 __Features:__
 
 - The timer __automatically starts__ when you switch to a (new) branch using `git checkout` or upon detecting any file activity in the repository
@@ -12,7 +11,6 @@ __Features:__
 - The time you spent is automatically added to the next `git commit`
 - The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1 minute. 
 - Spent time is stored as metadata using [git-notes](https://git-scm.com/docs/git-notes) and can be pushed and stored automatically to any remote repository (e.g Github)
-
 
 __Currently Supported:__
 
