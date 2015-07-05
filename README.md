@@ -6,7 +6,7 @@ Fully automated time tracking for Git repositories. It uses hooks and file monit
 
 __Features:__
 
-- The timer __automatically starts__ when you switch to a (new) branch using `git checkout` or upon detecting any file activity in the repository
+- The timer __automatically starts__ when make any file changes in the repository
 - The timer __automatically pauses__ when it doesn't detect any file activity for a while
 - The time you spent is automatically added to the next `git commit`
 - The timer increments in discreet steps: the _minimal billable unit_ (MBU), by default this is 1 minute. 
@@ -43,9 +43,6 @@ __Currently Supported:__
 
   # the timer keeps running while there is file activity
   echo "pretending to work..." > ./my_file.go
-  
-  # or branches are checked out
-  git checkout -b "testing_timeglass"
   ```
   
 4. Edit some files, get a coffee, and commit in order to register the time you spent:
