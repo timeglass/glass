@@ -41,27 +41,7 @@ function run_release_prepare_dirs {
 	cp $GOPATH/bin/glass${EXT} bin/${GOOS}_${GOARCH}
 }
 
-function run_release {
-	run_test
-	run_build
-	run_release_prepare_dirs
-
-	echo "Creating Windows installers..."
-	pushd installers/msi
-	./make.bash
-	popd
-
-	echo "Creating OSX installers..."
-	pushd installers/pkg
-	./make.bash
-	popd
-}
-
 function run_make_installer {
-	run_test
-	run_build
-	run_release_prepare_dirs
-
 	if [ "$GOOS" == "windows" ]; then
 		echo "Creating Windows installers..."
 		pushd installers/msi
@@ -77,8 +57,19 @@ function run_make_installer {
 		popd
 		cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin
 	fi
+
+
+	if [ "$GOOS" == "linux" ]; then
+		echo "No installer yet for linux platform"
+	fi
 }  
 
+function run_release {
+	run_test
+	run_build
+	run_release_prepare_dirs
+	run_make_installer
+}
 
 #choose command
 echo "Detected OS '$GOOS'"
@@ -88,8 +79,8 @@ case $1 in
     "build" ) run_build ;;
 	"build-daemon" ) run_build_daemon ;;
 	"run-daemon" ) run_run_daemon ;;
-	"release" ) run_release ;;
 	"installer" ) run_make_installer ;;
+	"release" ) run_release ;;
 
 	#
 	# following commands are not portable
