@@ -1,5 +1,5 @@
 {
-	"mbu": "1m0s",
+	"MBU": "1m10s",
 	"commit_message": " [spent {{.}}]",
 	"auto_push": true
 }

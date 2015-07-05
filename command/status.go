@@ -11,6 +11,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/config"
+	daemon "github.com/timeglass/glass/glass-daemon"
 	"github.com/timeglass/glass/vcs"
 )
 
@@ -56,7 +57,12 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to setup VCS: {{err}}", err)
 	}
 
-	conf, err := config.ReadConfig(vc.Root())
+	sysdir, err := daemon.SystemTimeglassPath()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to get system config path: {{err}}"), err)
+	}
+
+	conf, err := config.ReadConfig(vc.Root(), sysdir)
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}

@@ -58,8 +58,14 @@ func (t *Timer) Start() {
 
 	t.timerData.Failed = ""
 
-	//load project specific configuration
-	conf, err := config.ReadConfig(t.Dir())
+	//load project/ system specific configuration
+	sysdir, err := SystemTimeglassPathCreateIfNotExist()
+	if err != nil {
+		err = errwrap.Wrapf(fmt.Sprintf("Failed to read system config: {{err}}"), err)
+		t.timerData.Failed = err.Error()
+	}
+
+	conf, err := config.ReadConfig(t.Dir(), sysdir)
 	if err != nil {
 		err = errwrap.Wrapf(fmt.Sprintf("Failed to read configuration for '%s': {{err}}, using default", t.Dir()), err)
 		t.timerData.Failed = err.Error()
