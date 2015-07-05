@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/imdario/mergo"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+	"github.com/timeglass/glass/_vendor/github.com/imdario/mergo"
 )
 
 var confFilename = "timeglass.json"
