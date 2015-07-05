@@ -23,7 +23,7 @@ __Currently Supported:__
 	
 	1. Automatic [installers](https://github.com/timeglass/glass/releases/latest) for 64bit  _OSX_ and _Windows_ 
 	2. [Manual installion](/docs/manual_installation.md) with 64bit precompiled Binaries for OSX, Linux and Windows 
-	3. [Manual installion](/docs/manual_installation.md) by building form source for all other architectures
+	3. [Manual installion](/docs/manual_installation.md) by __building from source__ for all other architectures
 
   _Note: For Windows, the documentation assumes you're using Git through a [bash-like CLI](https://msysgit.github.io/) but nothing about the implementation prevents you from using another approach._
 
@@ -73,16 +73,6 @@ And ofcourse, you'll always have the options to uninstall:
 
 - [Uninstalling Timeglass](/docs/uninstall.md)
 
-## Building from Source
-First, you'll need install the go toolchain, instructions are [here](https://golang.org/doc/install). With Go installed you can simply run `go get` for _both_ binaries:
-
-```
-go get -u github.com/timeglass/glass
-go get -u github.com/timeglass/glass/glass-daemon
-```
-
-The source code will now be in your workspace and binaries are found in `$GOPATH/bin`, happy hacking!
-
 ## Roadmap, input welcome!
 
 - __Supporting Other VCS:__ Timeglass currently only works for git repositories, mainly due to the number of hooks it requires. _What other version control systems would you like to see implemented? Input welcome [here](https://github.com/Timeglass/glass/issues/10)_
@@ -90,7 +80,7 @@ The source code will now be in your workspace and binaries are found in `$GOPATH
 ## Known Issues
 
 - __Handling `git stash`:__ Git has the ability to stash work for a later commit prior to switching branches. Currently the timer unable to detect this; adding extra time to next commit. Input welcome [here](https://github.com/Timeglass/glass/issues/3)
-- __Network Volumes:__ Projects that are kept on network volumes (e.g using NFS) are known to have flaky support for file monitoring, especially on Linux (using inotify). This means automatic unpausing of the timer when editing a file might be broken in such projects. *I'm looking for cases that experience such problem, or other information that might be of help over* [here](https://github.com/timeglass/glass/issues/36)
+- __Network Volumes:__ Projects that are kept on network volumes (e.g using NFS) are known to have flaky support for file monitoring. This means timers might error on reboot as network drives weren't available, or the automatic unpausing of the timer might be broken in such projects. *I'm looking for cases that experience such problem, or other information that might be of help over* [here](https://github.com/timeglass/glass/issues/36)
 
 ## Contributors
 in alphabetical order:
