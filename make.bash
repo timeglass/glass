@@ -47,7 +47,7 @@ function run_make_installer {
 		pushd installers/msi
 		./make.bash
 		popd
-		cp 'installers/msi/bin/Timeglass Setup (x64).msi' bin
+		cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin/Timeglass\ `cat VERSION`\ Windows\ Setup\ \(x64\).msi
 	fi
 
 	if [ "$GOOS" == "darwin" ]; then
@@ -55,7 +55,7 @@ function run_make_installer {
 		pushd installers/pkg
 		./make.bash
 		popd
-		cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin
+		cp 'installers/pkg/bin/Timeglass Setup (x64).pkg' bin/Timeglass\ `cat VERSION`\ OSX\ Setup\ \(x64\).pkg
 	fi
 
 
@@ -140,21 +140,13 @@ case $1 in
 		    --file ${ARCHIVE} ; \
 		    echo "done!"; \
 		done
-		echo "Uploading shasums..."
-		github-release upload \
-		    --user timeglass \
-		    --repo glass \
-		    --tag v`cat` \
-		    --name timeglass_`cat VERSION`_SHA256SUMS \
-		    --file bin/dist/timeglass_`cat VERSION`_SHA256SUMS
-		echo "done!"
 		echo "Uploading OSX installer..."
 		github-release upload \
 		    --user timeglass \
 		    --repo glass \
 		    --tag v`cat` \
 		    --name 'Timeglass Setup (x64).pkg' \
-		    --file 'bin/dist/Timeglass Setup (x64).pkg'
+		    --file bin/dist/Timeglass\ `cat VERSION`\ OSX\ Setup\ \(x64\).pkg
 		echo "done!"
 		echo "Uploading Windows installer..."
 		github-release upload \
@@ -162,7 +154,15 @@ case $1 in
 		    --repo glass \
 		    --tag v`cat` \
 		    --name 'Timeglass Setup (x64).msi' \
-		    --file 'bin/dist/Timeglass Setup (x64).msi'
+		    --file bin/Timeglass\ `cat VERSION`\ Windows\ Setup\ \(x64\).msi
+		echo "done!"
+		echo "Uploading shasums..."
+		github-release upload \
+		    --user timeglass \
+		    --repo glass \
+		    --tag v`cat` \
+		    --name timeglass_`cat VERSION`_SHA256SUMS \
+		    --file bin/dist/timeglass_`cat VERSION`_SHA256SUMS
 		echo "done!"
  		;;
 	*) run_test ;;
