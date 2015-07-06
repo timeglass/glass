@@ -83,3 +83,4 @@ in alphabetical order:
 
 - Kristof Vannotten ([kvannotten](https://github.com/kvannotten))
 - Michael Mior ([michaelmior](https://github.com/michaelmior))
+- Micha Rosenbaum ([rosetree](https://github.com/rosetree))
