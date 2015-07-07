@@ -1,5 +1,6 @@
 # Timeglass
 
+
 ![Timeglass Screenshot](/docs/screenshot.png?raw=true "Timeglass Screenshot")
 
 Fully automated time tracking for Git repositories. It uses hooks and file monitoring to make sure you'll never forget to start or stop your timer ever again. It is written in [Go](http://golang.org/) and runs 100% on your own workstation: no internet or account registration required. 
