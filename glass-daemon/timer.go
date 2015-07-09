@@ -9,6 +9,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/config"
+	"github.com/timeglass/snow/index"
 	"github.com/timeglass/snow/monitor"
 )
 
@@ -23,13 +24,15 @@ type timerData struct {
 }
 
 type Timer struct {
-	running   bool
-	timerData *timerData
-	monitor   monitor.M
-	save      chan struct{}
-	stopto    chan struct{}
-	stoptick  chan struct{}
-	reset     chan struct{}
+	distributor *Distributor
+	index       *index.Lazy
+	running     bool
+	timerData   *timerData
+	monitor     monitor.M
+	save        chan struct{}
+	stopto      chan struct{}
+	stoptick    chan struct{}
+	reset       chan struct{}
 }
 
 func NewTimer(dir string) (*Timer, error) {
@@ -81,7 +84,6 @@ func (t *Timer) Start() {
 	t.reset = make(chan struct{})
 
 	//setup monitor, if not done yet
-	wakeup := make(chan monitor.DirEvent)
 	merrs := make(chan error)
 	if t.monitor == nil {
 		t.monitor, err = monitor.New(t.Dir(), monitor.Recursive, t.timerData.Latency)
@@ -90,7 +92,7 @@ func (t *Timer) Start() {
 			t.timerData.Failed = err.Error()
 			log.Print(err)
 		} else {
-			wakeup, err = t.monitor.Start()
+			_, err = t.monitor.Start()
 			if err != nil {
 				err = errwrap.Wrapf("Failed to start monitor: {{err}}", err)
 				t.timerData.Failed = err.Error()
@@ -100,8 +102,15 @@ func (t *Timer) Start() {
 			merrs = t.monitor.Errors()
 		}
 	} else {
-		wakeup = t.monitor.Events()
 		merrs = t.monitor.Errors()
+	}
+
+	//if we have a monitor, use an index to turn direvents into fileevents
+	fevs := make(chan index.FileEvent)
+	ierrs := make(chan error)
+	if t.monitor != nil {
+		idx := index.NewLazy()
+		fevs, ierrs = idx.Pipe(t.monitor.Events())
 	}
 
 	//handle stops, pauses, timeouts and wakeups
@@ -116,6 +125,9 @@ func (t *Timer) Start() {
 			case <-t.stopto:
 				log.Printf("Timer for project '%s' was stopped (and paused) explicitely", t.Dir())
 				return
+			case ierr := <-ierrs:
+				log.Printf("Index Error: %s", ierr)
+				t.timerData.Failed = ierr.Error()
 			case merr := <-merrs:
 				log.Printf("Monitor Error: %s", merr)
 				t.timerData.Failed = merr.Error()
@@ -124,7 +136,7 @@ func (t *Timer) Start() {
 					log.Printf("Timer for project '%s' timed out after %s", t.Dir(), t.timerData.Timeout)
 				}
 				t.Pause()
-			case ev := <-wakeup:
+			case ev := <-fevs:
 				if t.IsPaused() {
 					log.Printf("Timer for project '%s' woke up after some activity in '%s'", t.Dir(), ev.Dir())
 					t.Unpause()
