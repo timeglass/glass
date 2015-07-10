@@ -39,6 +39,7 @@ func TestEncodeTimer(t *testing.T) {
 	assert.True(t, timer.running)
 	assert.NoError(t, err)
 	assert.Contains(t, string(bytes), `"paused":false`)
+	assert.Contains(t, string(bytes), `"distribution":`)
 
 	timer.Stop()
 	timer.Pause()

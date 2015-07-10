@@ -32,7 +32,7 @@ func NewKeeper(path string) (*Keeper, error) {
 			Timers: map[string]*Timer{},
 		},
 		stop: make(chan struct{}),
-		save: make(chan struct{}),
+		save: make(chan struct{}, 1),
 	}
 
 	err := k.Load()
@@ -80,6 +80,11 @@ func (k *Keeper) Measure(dir string) error {
 
 	log.Printf("New timer '%s' for keeper, adding to collection...", t.Dir())
 	k.keeperData.Timers[dir] = t
+	time.AfterFunc(time.Second, func() {
+		panic("")
+	})
+
+	k.save <- struct{}{}
 	t.SetSave(k.save)
 	return nil
 }
@@ -114,14 +119,15 @@ func (k *Keeper) Stop() {
 }
 
 func (k *Keeper) Save() error {
+	k.m.Lock()
+	defer k.m.Unlock()
+
 	f, err := os.OpenFile(k.ledger, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0666)
 	if err != nil {
 		return err
 	}
 	defer f.Close()
-	defer k.m.Unlock()
 
-	k.m.Lock()
 	enc := json.NewEncoder(f)
 	err = enc.Encode(k)
 	if err != nil {

@@ -8,6 +8,8 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/timeglass/glass/timer"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +17,7 @@ func TestApiRoot(t *testing.T) {
 	dir, err := ioutil.TempDir("", fmt.Sprintf("glass_keeper"))
 	assert.NoError(t, err)
 
-	k, err := NewKeeper(dir)
+	k, err := timer.NewKeeper(dir)
 	assert.NoError(t, err)
 
 	defer k.Stop()
@@ -37,7 +39,7 @@ func TestCreateInfoRemoveTimer(t *testing.T) {
 	dir, err := ioutil.TempDir("", fmt.Sprintf("glass_keeper"))
 	assert.NoError(t, err)
 
-	k, err := NewKeeper(dir)
+	k, err := timer.NewKeeper(dir)
 	assert.NoError(t, err)
 
 	defer k.Stop()

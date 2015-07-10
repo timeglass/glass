@@ -22,7 +22,6 @@ func NewDistributer() *Distributor {
 
 func (d *Distributor) Register(ev index.FileEvent) {
 	log.Printf("Registered file event: %s", ev)
-
 }
 
 func (d *Distributor) Distribute(total time.Duration) (Distribution, error) {

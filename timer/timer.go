@@ -9,6 +9,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/config"
+	"github.com/timeglass/snow/index"
 	"github.com/timeglass/snow/monitor"
 )
 
@@ -17,26 +18,30 @@ import (
 // remove any routines, channels etc when
 // a refence is removed
 type Timer struct {
-	err       error
-	running   bool
-	read      chan chan time.Duration
-	marshal   chan chan []byte
-	unpause   chan struct{}
-	save      chan struct{}
-	pause     chan struct{}
-	reset     chan struct{}
-	stop      chan chan struct{}
+	err     error
+	running bool
+	read    chan chan time.Duration
+	marshal chan chan []byte
+	unpause chan struct{}
+	save    chan struct{}
+	pause   chan struct{}
+	reset   chan struct{}
+	stop    chan chan struct{}
+	monitor monitor.M
+	index   *index.Lazy
+	distr   *Distributor
+
 	timerData *timerData
-	monitor   monitor.M
 }
 
 type timerData struct {
-	Dir     string        `json:"conf_path"`
-	Time    time.Duration `json:"total"`
-	MBU     time.Duration `json:"mbu"`
-	Timeout time.Duration `json:"timeout"`
-	Paused  bool          `json:"paused"`
-	Latency time.Duration `json:"latency"`
+	Dir          string        `json:"conf_path"`
+	Time         time.Duration `json:"total"`
+	MBU          time.Duration `json:"mbu"`
+	Timeout      time.Duration `json:"timeout"`
+	Paused       bool          `json:"paused"`
+	Latency      time.Duration `json:"latency"`
+	Distribution Distribution  `json:"distribution"`
 }
 
 func NewTimer(dir string) (*Timer, error) {
@@ -90,6 +95,8 @@ func (t *Timer) init() error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to create monitor for '%s': {{err}}", t.Dir()), err)
 	}
 
+	t.index = index.NewLazy()
+	t.distr = NewDistributer()
 	return nil
 }
 
@@ -100,6 +107,7 @@ func (t *Timer) emitSave() {
 }
 
 func (t *Timer) run() {
+	fevs, ierrs := t.index.Pipe(t.monitor.Events())
 	_, err := t.monitor.Start()
 	if err != nil {
 		log.Printf("Failed to start monitor for '%s', this prevents automatic unpausing: %s", t.Dir(), err)
@@ -125,7 +133,6 @@ func (t *Timer) run() {
 	go func(d *timerData) {
 		ticker := time.NewTicker(d.MBU)
 		d.Time += d.MBU
-		t.emitSave()
 		for {
 			select {
 			case ch := <-t.read:
@@ -152,10 +159,12 @@ func (t *Timer) run() {
 				}
 
 				t.emitSave()
-			case ev := <-t.monitor.Events():
-				log.Printf("[%s] File system activity in '%s'", d.Dir, ev.Dir())
+			case fev := <-fevs:
+				log.Printf("[%s] File system activity in '%s'", d.Dir, fev.Dir())
 				extend <- struct{}{}
 				d.Paused = false
+			case ierr := <-ierrs:
+				log.Printf("[%s] Index error: %s", d.Dir, ierr)
 			case merr := <-t.monitor.Errors():
 				log.Printf("[%s] Monitor error: %s", d.Dir, merr)
 			case ch := <-t.marshal:
@@ -261,6 +270,12 @@ func (t *Timer) UnmarshalJSON(b []byte) error {
 }
 
 func (t *Timer) marshalJSON() ([]byte, error) {
+	var err error
+	t.timerData.Distribution, err = t.distr.Distribute(t.timerData.Time)
+	if err != nil {
+		return nil, errwrap.Wrapf("Failed to distribute: {{err}}", err)
+	}
+
 	return json.Marshal(t.timerData)
 }
 

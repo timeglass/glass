@@ -25,7 +25,7 @@ function run_run_daemon {
 
 function run_test {
 	echo "running all tests..."
-	go test ./...
+	go test ./... -race
 }  
 
 function run_build {	

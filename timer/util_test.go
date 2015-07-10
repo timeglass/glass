@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(os.Stderr)
 }
 
 func setupTestProject(t *testing.T) string {
