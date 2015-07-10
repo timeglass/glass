@@ -1,8 +1,9 @@
-package main
+package timer
 
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"path/filepath"
 	"testing"
@@ -10,6 +11,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
+
+func init() {
+	log.SetOutput(ioutil.Discard)
+}
 
 func setupTestProject(t *testing.T) string {
 	dir, err := ioutil.TempDir("", fmt.Sprintf("glass_keeper"))
@@ -37,5 +42,5 @@ func moveProjectFile(t *testing.T, from, to string) {
 }
 
 func assertTime(t *testing.T, timer *Timer, expected time.Duration) {
-	assert.InDelta(t, float64(expected), float64(timer.Time()), float64(timer.timerData.MBU+time.Millisecond))
+	assert.InDelta(t, float64(expected), float64(timer.Time()), float64(timer.timerData.MBU+time.Millisecond), fmt.Sprintf("Max difference between %s and %s allowed is %s", expected, timer.Time(), timer.timerData.MBU+time.Millisecond))
 }

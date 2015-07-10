@@ -10,7 +10,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/mattn/go-isatty"
 
 	"github.com/timeglass/glass/config"
-	daemon "github.com/timeglass/glass/glass-daemon"
+	"github.com/timeglass/glass/timer"
 	"github.com/timeglass/glass/vcs"
 )
 
@@ -48,7 +48,7 @@ func (c *Push) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)
 	}
 
-	sysdir, err := daemon.SystemTimeglassPath()
+	sysdir, err := timer.SystemTimeglassPath()
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to get system config path: {{err}}"), err)
 	}

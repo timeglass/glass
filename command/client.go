@@ -12,7 +12,7 @@ import (
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
-	daemon "github.com/timeglass/glass/glass-daemon"
+	"github.com/timeglass/glass/timer"
 )
 
 var ErrRequestFailed = errors.New("Couldn't reach background service, did you install it using 'glass install'?")
@@ -125,8 +125,8 @@ func (c *Client) PauseTimer(dir string) error {
 	return nil
 }
 
-func (c *Client) ReadTimer(dir string) (*daemon.Timer, error) {
-	timers := []*daemon.Timer{}
+func (c *Client) ReadTimer(dir string) (*timer.Timer, error) {
+	timers := []*timer.Timer{}
 	params := url.Values{}
 	params.Set("dir", dir)
 

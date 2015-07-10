@@ -18,7 +18,6 @@ func TestApiRoot(t *testing.T) {
 	k, err := NewKeeper(dir)
 	assert.NoError(t, err)
 
-	go k.Start()
 	defer k.Stop()
 
 	svr, err := NewServer(":0", k)
@@ -41,7 +40,6 @@ func TestCreateInfoRemoveTimer(t *testing.T) {
 	k, err := NewKeeper(dir)
 	assert.NoError(t, err)
 
-	go k.Start()
 	defer k.Stop()
 
 	svr, err := NewServer(":0", k)
@@ -59,7 +57,7 @@ func TestCreateInfoRemoveTimer(t *testing.T) {
 
 	assert.Equal(t, http.StatusCreated, w.Code)
 
-	//Info
+	// Info
 	r, err = http.NewRequest("GET", "/api/timers.info?"+params.Encode(), nil)
 	assert.NoError(t, err)
 	w = httptest.NewRecorder()
@@ -70,6 +68,7 @@ func TestCreateInfoRemoveTimer(t *testing.T) {
 
 	//Delete
 	r, err = http.NewRequest("GET", "/api/timers.delete?"+params.Encode(), nil)
+
 	assert.NoError(t, err)
 	w = httptest.NewRecorder()
 	svr.timersDelete(w, r)

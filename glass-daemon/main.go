@@ -9,25 +9,27 @@ import (
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 	"github.com/timeglass/glass/_vendor/github.com/kardianos/service"
+
+	"github.com/timeglass/glass/timer"
 )
 
 var Version = "0.0.0"
 var Build = "gobuild"
 
 type daemon struct {
-	keeper *Keeper
+	keeper *timer.Keeper
 	server *Server
 }
 
 func (p *daemon) Start(s service.Service) error {
 	var err error
 
-	path, err := SystemTimeglassPathCreateIfNotExist()
+	path, err := timer.SystemTimeglassPathCreateIfNotExist()
 	if err != nil {
 		return errwrap.Wrapf("Failed to find Timeglass system path: {{err}}", err)
 	}
 
-	p.keeper, err = NewKeeper(path)
+	p.keeper, err = timer.NewKeeper(path)
 	if err != nil {
 		return errwrap.Wrapf("Failed to create time keeper: {{err}}", err)
 	}
@@ -39,7 +41,6 @@ func (p *daemon) Start(s service.Service) error {
 	}
 
 	go p.server.checkVersion()
-	go p.keeper.Start()
 	go p.run()
 	return nil
 }

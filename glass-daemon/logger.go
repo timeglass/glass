@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
+
+	"github.com/timeglass/glass/timer"
 )
 
 type Logger struct {
@@ -17,7 +19,7 @@ type Logger struct {
 
 func NewLogger(w io.Writer) (*Logger, error) {
 	l := &Logger{}
-	path, err := SystemTimeglassPathCreateIfNotExist()
+	path, err := timer.SystemTimeglassPathCreateIfNotExist()
 	if err != nil {
 		return nil, errwrap.Wrapf("Failed to find Timeglass system path: {{err}}", err)
 	}
