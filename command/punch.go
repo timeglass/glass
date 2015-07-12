@@ -61,7 +61,7 @@ func (c *Punch) Run(ctx *cli.Context) error {
 	}
 
 	if input == "" {
-		return fmt.Errorf("Please provide the time you spent as the first argument")
+		return fmt.Errorf("Please provide the time you spent as the first argument or over Stdin")
 	}
 
 	t, err := time.ParseDuration(input)

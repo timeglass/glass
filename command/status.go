@@ -67,6 +67,11 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}
 
+	staged, err := vc.Staging()
+	if err != nil {
+		return errwrap.Wrapf(fmt.Sprintf("Failed to get staged files from the VCS: {{err}}"), err)
+	}
+
 	client := NewClient()
 
 	//fetch information on overall daemon
@@ -107,7 +112,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 	//we got some template specified
 	if tmpls != "" {
 
-		//parse temlate and only report error if we're talking to a human
+		//parse template and only report error if we're talking to a human
 		tmpl, err := template.New("commit-msg").Parse(tmpls)
 		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to parse commit_message: '%s' in configuration as a text/template: {{err}}", conf.CommitMessage), err)
@@ -121,7 +126,15 @@ func (c *Status) Run(ctx *cli.Context) error {
 
 	} else {
 		//just print
-		c.Printf("Timer reads: %s", timer.Time())
+		c.Printf("Total time reads: %s", timer.Time())
+
+		if len(staged) > 0 {
+			c.Print("Staged file changes:")
+			for path, f := range staged {
+				c.Printf(" - %s (%s)", path, f.Date())
+			}
+		}
+
 	}
 
 	return nil

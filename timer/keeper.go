@@ -32,7 +32,7 @@ func NewKeeper(path string) (*Keeper, error) {
 			Timers: map[string]*Timer{},
 		},
 		stop: make(chan struct{}),
-		save: make(chan struct{}, 1),
+		save: make(chan struct{}, 1), //@todo why we need a buffer is not entirely clear
 	}
 
 	err := k.Load()
@@ -80,10 +80,6 @@ func (k *Keeper) Measure(dir string) error {
 
 	log.Printf("New timer '%s' for keeper, adding to collection...", t.Dir())
 	k.keeperData.Timers[dir] = t
-	time.AfterFunc(time.Second, func() {
-		panic("")
-	})
-
 	k.save <- struct{}{}
 	t.SetSave(k.save)
 	return nil

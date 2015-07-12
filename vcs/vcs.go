@@ -21,7 +21,14 @@ type VCS interface {
 	Pull(string) error
 	DefaultRemote() (string, error)
 	Persist(time.Duration) error
+	Staging() (map[string]StagedFile, error)
 	Show(string) (TimeData, error)
+}
+
+type StagedFile interface {
+	Date() time.Time
+	Path() string
+	Hash() string
 }
 
 type TimeData interface {
