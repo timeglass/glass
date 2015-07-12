@@ -21,13 +21,19 @@ func TestLoadSave(t *testing.T) {
 
 	k, err := NewKeeper(dir)
 	assert.NoError(t, err)
+	err = k.Measure(dir)
+	assert.NoError(t, err)
+
+	<-time.After(time.Millisecond * 40)
 
 	data, err := ioutil.ReadFile(filepath.Join(dir, "ledger.json"))
 	assert.NoError(t, err)
-	assert.Contains(t, string(data), "timers")
+	assert.Contains(t, string(data), dir)
 
+	//load should cause the timer to start
 	err = k.Load()
 	assert.NoError(t, err)
+	assert.True(t, k.keeperData.Timers[dir].running)
 
 	err = k.Save()
 	assert.NoError(t, err)

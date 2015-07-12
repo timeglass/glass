@@ -29,19 +29,18 @@ type Timer struct {
 	stop    chan chan struct{}
 	monitor monitor.M
 	index   *index.Lazy
-	distr   *Distributor
 
 	timerData *timerData
 }
 
 type timerData struct {
-	Dir          string        `json:"conf_path"`
-	Time         time.Duration `json:"total"`
-	MBU          time.Duration `json:"mbu"`
-	Timeout      time.Duration `json:"timeout"`
-	Paused       bool          `json:"paused"`
-	Latency      time.Duration `json:"latency"`
-	Distribution Distribution  `json:"distribution"`
+	Dir         string        `json:"conf_path"`
+	Time        time.Duration `json:"total"`
+	MBU         time.Duration `json:"mbu"`
+	Timeout     time.Duration `json:"timeout"`
+	Paused      bool          `json:"paused"`
+	Latency     time.Duration `json:"latency"`
+	Distributor *Distributor  `json:"distributor"`
 }
 
 func NewTimer(dir string) (*Timer, error) {
@@ -56,7 +55,7 @@ func NewTimer(dir string) (*Timer, error) {
 		return nil, err
 	}
 
-	t.run()
+	t.Start()
 	return t, nil
 }
 
@@ -96,7 +95,10 @@ func (t *Timer) init() error {
 	}
 
 	t.index = index.NewLazy()
-	t.distr = NewDistributer()
+	if t.timerData.Distributor == nil {
+		t.timerData.Distributor = NewDistributer()
+	}
+
 	return nil
 }
 
@@ -106,7 +108,7 @@ func (t *Timer) emitSave() {
 	}
 }
 
-func (t *Timer) run() {
+func (t *Timer) Start() {
 	fevs, ierrs := t.index.Pipe(t.monitor.Events())
 	_, err := t.monitor.Start()
 	if err != nil {
@@ -149,6 +151,7 @@ func (t *Timer) run() {
 					log.Printf("[%s] Pause", d.Dir)
 				}
 
+				d.Distributor.Break()
 				d.Paused = true
 			case <-t.reset:
 				d.Time = 0
@@ -162,6 +165,7 @@ func (t *Timer) run() {
 			case fev := <-fevs:
 				log.Printf("[%s] File system activity in '%s'", d.Dir, fev.Dir())
 				extend <- struct{}{}
+				d.Distributor.Register(fev.Path())
 				d.Paused = false
 			case ierr := <-ierrs:
 				log.Printf("[%s] Index error: %s", d.Dir, ierr)
@@ -265,17 +269,10 @@ func (t *Timer) UnmarshalJSON(b []byte) error {
 	}
 
 	t.init()
-	t.run()
 	return nil
 }
 
 func (t *Timer) marshalJSON() ([]byte, error) {
-	var err error
-	t.timerData.Distribution, err = t.distr.Distribute(t.timerData.Time)
-	if err != nil {
-		return nil, errwrap.Wrapf("Failed to distribute: {{err}}", err)
-	}
-
 	return json.Marshal(t.timerData)
 }
 

@@ -149,6 +149,12 @@ func (k *Keeper) Load() error {
 		if err != nil {
 			return errwrap.Wrapf(fmt.Sprintf("Failed to decode JSON in '%s': {{err}}", k.ledger), err)
 		}
+
+		//decoded timers have to be started manually
+		for _, t := range k.keeperData.Timers {
+			t.Start()
+		}
+
 	}
 
 	go k.run()
