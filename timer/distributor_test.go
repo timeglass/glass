@@ -73,9 +73,31 @@ func TestRegisterMultiline(t *testing.T) {
 	assert.NoError(t, err)
 	assertDuration(t, time.Second*10, res)
 
-	res, err = d.Extract("file_y", point("20s"))
+	res, err = d.Extract("file_y", point("25s"))
 	assert.NoError(t, err)
 	assertDuration(t, time.Second*15, res)
+}
+
+func TestRegisterMultilineUpTo(t *testing.T) {
+	d := NewDistributor()
+
+	d.Register("file_x", point(""))
+	d.Register("file_x", point("5s"))
+	d.Register("file_y", point("10s"))
+	d.Register("file_y", point("15s"))
+	d.Break(point("25s"))
+
+	res, err := d.Extract("", point("15s"))
+	assert.NoError(t, err)
+	assertDuration(t, time.Second*0, res)
+
+	res, err = d.Extract("file_x", point("15s"))
+	assert.NoError(t, err)
+	assertDuration(t, time.Second*10, res)
+
+	res, err = d.Extract("file_y", point("15s"))
+	assert.NoError(t, err)
+	assertDuration(t, time.Second*5, res)
 }
 
 func TestMarshalUnmarshalMultiline(t *testing.T) {
@@ -101,7 +123,7 @@ func TestMarshalUnmarshalMultiline(t *testing.T) {
 	assert.NoError(t, err)
 	assertDuration(t, time.Second*10, res)
 
-	res, err = dd.Extract("file_y", point("20s"))
+	res, err = dd.Extract("file_y", point("25s"))
 	assert.NoError(t, err)
 	assertDuration(t, time.Second*15, res)
 }

@@ -3,6 +3,7 @@ package timer
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"time"
 )
 
@@ -16,15 +17,23 @@ func NewTimeline() *Timeline {
 	return &Timeline{}
 }
 
-func (tl *Timeline) Length() time.Duration {
+func (tl *Timeline) Length(upto time.Time) time.Duration {
 	res := time.Millisecond * 0
 	for _, e := range tl.Edges {
-		if len(e) == 0 {
+		inrange := []time.Time{}
+		for _, point := range e {
+			//difference of a second is ok
+			if math.Floor(upto.Sub(point).Seconds()) >= 0 {
+				inrange = append(inrange, point)
+			}
+		}
+
+		if len(inrange) == 0 {
 			continue
 		}
 
-		first := e[0]
-		last := e[len(e)-1]
+		first := inrange[0]
+		last := inrange[len(inrange)-1]
 		res += last.Sub(first)
 	}
 
@@ -118,12 +127,10 @@ func (d *Distributor) Extract(fpath string, upto time.Time) (time.Duration, erro
 		fpath = OverheadTimeline
 	}
 
-	//@todo, upto
-
 	if tl, ok := d.data.Timelines[fpath]; !ok {
 		return 0, fmt.Errorf("No known timeline for file '%s'", fpath)
 	} else {
-		return tl.Length(), nil
+		return tl.Length(upto), nil
 	}
 }
 
