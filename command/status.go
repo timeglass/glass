@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
+	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
@@ -129,7 +130,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 		c.Printf("Total time reads: %s", timer.Time())
 
 		for fpath, tl := range timer.Distributor().Timelines() {
-			fmt.Println(fpath, tl.Length())
+			fmt.Println(fpath, tl.Length(time.Now()))
 		}
 
 		if len(staged) > 0 {

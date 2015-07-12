@@ -115,6 +115,7 @@ func (k *Keeper) Stop() {
 }
 
 func (k *Keeper) Save() error {
+	log.Printf("Saving timer data to '%s'...", k.ledger)
 	k.m.Lock()
 	defer k.m.Unlock()
 

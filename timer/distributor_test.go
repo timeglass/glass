@@ -48,7 +48,7 @@ func TestRegisterOverHeadClosedTimeline(t *testing.T) {
 	d.Register("", point("5s"))
 	d.Register("", point("10s"))
 	d.Break(point("15s"))
-	res, err := d.Extract("", point("15s"))
+	res, err := d.Extract("", point("30s"))
 
 	//expect only 10s since the open timeline is
 	//ver closed

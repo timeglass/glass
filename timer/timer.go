@@ -159,9 +159,9 @@ func (t *Timer) Start() {
 				if !d.Paused {
 					d.Time += d.MBU
 					log.Printf("[%s] Tick: %s", d.Dir, d.Time)
+					t.emitSave()
 				}
 
-				t.emitSave()
 			case fev := <-fevs:
 				log.Printf("[%s] File system activity in '%s'", d.Dir, fev.Dir())
 				extend <- struct{}{}
