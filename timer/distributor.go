@@ -9,7 +9,7 @@ import (
 //A timeline holds a number of lines
 //for a single file
 type Timeline struct {
-	Edges [][]time.Time `json:"edges"`
+	Edges [][]time.Time `json:"e"`
 }
 
 func NewTimeline() *Timeline {
@@ -53,8 +53,8 @@ type Distributor struct {
 }
 
 type distrData struct {
-	ActiveFile string               `json:"active_file"`
-	Timelines  map[string]*Timeline `json:"timelines"`
+	ActiveFile string               `json:"af"`
+	Timelines  map[string]*Timeline `json:"tl"`
 }
 
 var OverheadTimeline = "__overhead"
@@ -62,7 +62,9 @@ var OverheadTimeline = "__overhead"
 func NewDistributor() *Distributor {
 	d := &Distributor{
 		data: &distrData{
-			Timelines: map[string]*Timeline{},
+			Timelines: map[string]*Timeline{
+				OverheadTimeline: NewTimeline(),
+			},
 		},
 	}
 
@@ -116,6 +118,8 @@ func (d *Distributor) Extract(fpath string, upto time.Time) (time.Duration, erro
 		fpath = OverheadTimeline
 	}
 
+	//@todo, upto
+
 	if tl, ok := d.data.Timelines[fpath]; !ok {
 		return 0, fmt.Errorf("No known timeline for file '%s'", fpath)
 	} else {
@@ -123,8 +127,12 @@ func (d *Distributor) Extract(fpath string, upto time.Time) (time.Duration, erro
 	}
 }
 
+func (d *Distributor) Timelines() map[string]*Timeline {
+	return d.data.Timelines
+}
+
 func (d *Distributor) UnmarshalJSON(b []byte) error {
-	err := json.Unmarshal(b, &d)
+	err := json.Unmarshal(b, &d.data)
 	if err != nil {
 		return err
 	}

@@ -96,7 +96,7 @@ func (t *Timer) init() error {
 
 	t.index = index.NewLazy()
 	if t.timerData.Distributor == nil {
-		t.timerData.Distributor = NewDistributer()
+		t.timerData.Distributor = NewDistributor()
 	}
 
 	return nil
@@ -151,7 +151,7 @@ func (t *Timer) Start() {
 					log.Printf("[%s] Pause", d.Dir)
 				}
 
-				d.Distributor.Break()
+				d.Distributor.Break(time.Now())
 				d.Paused = true
 			case <-t.reset:
 				d.Time = 0
@@ -165,7 +165,7 @@ func (t *Timer) Start() {
 			case fev := <-fevs:
 				log.Printf("[%s] File system activity in '%s'", d.Dir, fev.Dir())
 				extend <- struct{}{}
-				d.Distributor.Register(fev.Path())
+				d.Distributor.Register(fev.Path(), time.Now())
 				d.Paused = false
 			case ierr := <-ierrs:
 				log.Printf("[%s] Index error: %s", d.Dir, ierr)
@@ -200,6 +200,10 @@ func (t *Timer) Start() {
 	}(t.timerData)
 
 	t.running = true
+}
+
+func (t *Timer) Distributor() *Distributor {
+	return t.timerData.Distributor
 }
 
 func (t *Timer) Unpause() {

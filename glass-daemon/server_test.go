@@ -67,6 +67,7 @@ func TestCreateInfoRemoveTimer(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Contains(t, w.Body.String(), "latency")
+	assert.Contains(t, w.Body.String(), "distributor")
 
 	//Delete
 	r, err = http.NewRequest("GET", "/api/timers.delete?"+params.Encode(), nil)

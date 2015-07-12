@@ -128,6 +128,10 @@ func (c *Status) Run(ctx *cli.Context) error {
 		//just print
 		c.Printf("Total time reads: %s", timer.Time())
 
+		for fpath, tl := range timer.Distributor().Timelines() {
+			fmt.Println(fpath, tl.Length())
+		}
+
 		if len(staged) > 0 {
 			c.Print("Staged file changes:")
 			for path, f := range staged {
