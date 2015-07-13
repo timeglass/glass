@@ -10,8 +10,9 @@ import (
 //A block of time that is positioned
 //on a timeline
 type Block struct {
-	Width time.Duration `json:"w"`
-	Time  time.Time     `json:"t"`
+	Staged bool          `json:"s"`
+	Width  time.Duration `json:"w"`
+	Time   time.Time     `json:"t"`
 }
 
 //A timeline holds a number of lines
@@ -35,8 +36,16 @@ func (tl *Timeline) Length(upto time.Time) time.Duration {
 	return res
 }
 
+func (tl *Timeline) Stage(upto time.Time) {
+	for _, b := range tl.Blocks {
+		if math.Floor(upto.Sub(b.Time).Seconds()) >= 0 {
+			b.Staged = true
+		}
+	}
+}
+
 func (tl *Timeline) Expand(w time.Duration, t time.Time) {
-	tl.Blocks = append(tl.Blocks, &Block{w, t})
+	tl.Blocks = append(tl.Blocks, &Block{false, w, t})
 }
 
 //A distributor managed various files
@@ -57,7 +66,7 @@ func NewDistributor() *Distributor {
 		data: &distrData{},
 	}
 
-	d.Reset()
+	d.Reset(false)
 	return d
 }
 
@@ -65,10 +74,25 @@ func (d *Distributor) Break() {
 	d.data.ActiveFiles = map[string]string{}
 }
 
-func (d *Distributor) Reset() {
+func (d *Distributor) Reset(staged bool) {
 	d.Break()
-	d.data.Timelines = map[string]*Timeline{
-		OverheadTimeline: NewTimeline(),
+	if staged {
+		//only remove staged blocks
+		for _, tl := range d.data.Timelines {
+			blcks := []*Block{}
+			for _, b := range tl.Blocks {
+				if !b.Staged {
+					blcks = append(blcks, b)
+				}
+			}
+
+			tl.Blocks = blcks
+		}
+	} else {
+		//reset all
+		d.data.Timelines = map[string]*Timeline{
+			OverheadTimeline: NewTimeline(),
+		}
 	}
 }
 
@@ -80,6 +104,7 @@ func (d *Distributor) Distribute(dur time.Duration, t time.Time) {
 	partd := dur.Nanoseconds() / int64(len(d.data.ActiveFiles))
 	for path, _ := range d.data.ActiveFiles {
 		if tl, ok := d.data.Timelines[path]; !ok {
+
 			//@todo no timeline while it should, emit error?
 			continue
 		} else {
@@ -102,6 +127,20 @@ func (d *Distributor) Register(fpath string) {
 
 	if _, ok = d.data.ActiveFiles[fpath]; !ok {
 		d.data.ActiveFiles[fpath] = ""
+	}
+}
+
+//stage blocks to be removed on the next .Reset(true)
+func (d *Distributor) Stage(fpath string, upto time.Time) error {
+	if fpath == "" {
+		fpath = OverheadTimeline
+	}
+
+	if tl, ok := d.data.Timelines[fpath]; !ok {
+		return fmt.Errorf("No known timeline for file '%s'", fpath)
+	} else {
+		tl.Stage(upto)
+		return nil
 	}
 }
 

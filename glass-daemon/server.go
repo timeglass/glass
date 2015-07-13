@@ -8,6 +8,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
@@ -115,7 +116,12 @@ func (s *Server) timersReset(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			t.Reset()
+			staged, err := strconv.ParseBool(r.Form.Get("staged"))
+			if err != nil {
+				staged = false
+			}
+
+			t.Reset(staged)
 		}
 	}
 

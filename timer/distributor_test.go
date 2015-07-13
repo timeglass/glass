@@ -38,6 +38,26 @@ func TestSingleLine(t *testing.T) {
 	assert.Equal(t, time.Second*3, res)
 }
 
+func TestSingleLineStage(t *testing.T) {
+	d := NewDistributor()
+	d.Register("")
+	d.Distribute(time.Second, point("5s"))
+	d.Distribute(time.Second, point("10s"))
+	d.Distribute(time.Second, point("15s"))
+
+	res, err := d.Extract("", point("10s"))
+	assert.NoError(t, err)
+	assert.Equal(t, time.Second*2, res)
+
+	err = d.Stage("", point("15s"))
+	assert.NoError(t, err)
+	d.Reset(true)
+
+	res, err = d.Extract("", point("10s"))
+	assert.NoError(t, err)
+	assert.Equal(t, time.Second*0, res)
+}
+
 func TestSingleLineCutoff(t *testing.T) {
 	d := NewDistributor()
 	d.Register("")
