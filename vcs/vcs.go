@@ -21,15 +21,23 @@ type VCS interface {
 	Pull(string) error
 	DefaultRemote() (string, error)
 	Persist(time.Duration) error
-	Staging() (map[string]StagedFile, error)
+	Staging() (map[string]*StagedFile, error)
 	Show(string) (TimeData, error)
 }
 
-type StagedFile interface {
-	Date() time.Time
-	Path() string
-	Hash() string
+type StagedFile struct {
+	date time.Time
+	hash string
+	path string
 }
+
+func NewStagedFile(date time.Time, hash, path string) *StagedFile {
+	return &StagedFile{date, hash, path}
+}
+
+func (g *StagedFile) Date() time.Time { return g.date }
+func (g *StagedFile) Hash() string    { return g.hash }
+func (g *StagedFile) Path() string    { return g.path }
 
 type TimeData interface {
 	Total() time.Duration

@@ -36,6 +36,28 @@ func (tl *Timeline) Length(upto time.Time) time.Duration {
 	return res
 }
 
+func (tl *Timeline) Staged() time.Duration {
+	res := time.Millisecond * 0
+	for _, b := range tl.Blocks {
+		if b.Staged {
+			res += b.Width
+		}
+	}
+
+	return res
+}
+
+func (tl *Timeline) Unstaged() time.Duration {
+	res := time.Millisecond * 0
+	for _, b := range tl.Blocks {
+		if !b.Staged {
+			res += b.Width
+		}
+	}
+
+	return res
+}
+
 func (tl *Timeline) Stage(upto time.Time) {
 	for _, b := range tl.Blocks {
 		if math.Floor(upto.Sub(b.Time).Seconds()) >= 0 {
@@ -131,16 +153,14 @@ func (d *Distributor) Register(fpath string) {
 }
 
 //stage blocks to be removed on the next .Reset(true)
-func (d *Distributor) Stage(fpath string, upto time.Time) error {
+func (d *Distributor) Stage(fpath string, upto time.Time) {
 	if fpath == "" {
 		fpath = OverheadTimeline
 	}
 
-	if tl, ok := d.data.Timelines[fpath]; !ok {
-		return fmt.Errorf("No known timeline for file '%s'", fpath)
-	} else {
+	//no timeline is a noop
+	if tl, ok := d.data.Timelines[fpath]; ok {
 		tl.Stage(upto)
-		return nil
 	}
 }
 

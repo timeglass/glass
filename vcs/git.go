@@ -51,16 +51,6 @@ type gitTimeData struct {
 
 func (g *gitTimeData) Total() time.Duration { return g.total }
 
-type gitStagedFile struct {
-	date time.Time
-	hash string
-	path string
-}
-
-func (g *gitStagedFile) Date() time.Time { return g.date }
-func (g *gitStagedFile) Hash() string    { return g.hash }
-func (g *gitStagedFile) Path() string    { return g.path }
-
 type Git struct {
 	dir  string
 	root string
@@ -93,8 +83,8 @@ func (g *Git) Root() string {
 	return g.root
 }
 
-func (g *Git) Staging() (map[string]StagedFile, error) {
-	stage := map[string]StagedFile{}
+func (g *Git) Staging() (map[string]*StagedFile, error) {
+	stage := map[string]*StagedFile{}
 
 	args := []string{"diff", "--staged", "--raw", "--no-abbrev"}
 	outbuff := bytes.NewBuffer(nil)
@@ -127,7 +117,7 @@ func (g *Git) Staging() (map[string]StagedFile, error) {
 			return stage, errwrap.Wrapf(fmt.Sprintf("Failed to stat staged object file '%s' for file '%s': {{err}}", objpath, path), err)
 		}
 
-		stage[path] = &gitStagedFile{
+		stage[path] = &StagedFile{
 			hash: parts[3],
 			path: path,
 			date: fi.ModTime(),

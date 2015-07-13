@@ -10,10 +10,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/timer"
+	"github.com/timeglass/glass/vcs"
 )
 
 var CheckVersionURL = "https://s3-eu-west-1.amazonaws.com/timeglass/version/VERSION?dversion=" + Version
@@ -128,6 +130,44 @@ func (s *Server) timersReset(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+func (s *Server) timersStage(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		s.Respond(w, err)
+		return
+	}
+
+	if dirs, ok := r.Form["dir"]; !ok {
+		s.Respond(w, fmt.Errorf("dir parameter is mandatory"))
+		return
+	} else {
+		for _, dir := range dirs {
+			t, err := s.keeper.Inspect(dir)
+			if err != nil {
+				s.Respond(w, errwrap.Wrapf("Failed get timer: {{err}}", err))
+				return
+			}
+
+			res := []*vcs.StagedFile{}
+			for _, fstr := range r.Form["files"] {
+				lindx := strings.LastIndex(fstr, ":")
+				tunix := fstr[(lindx + 1):]
+				tint, err := strconv.ParseInt(tunix, 10, 64)
+				if err != nil {
+					s.Respond(w, errwrap.Wrapf(fmt.Sprintf("Parse int '%s': {{err}}", tunix), err))
+					return
+				}
+
+				res = append(res, vcs.NewStagedFile(time.Unix(0, tint), "", fstr[:lindx]))
+			}
+
+			t.Stage(res)
+		}
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 func (s *Server) timersInfo(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -187,6 +227,7 @@ func NewServer(httpb string, keeper *timer.Keeper) (*Server, error) {
 	mux.HandleFunc("/api/timers.delete", s.timersDelete)
 	mux.HandleFunc("/api/timers.reset", s.timersReset)
 	mux.HandleFunc("/api/timers.info", s.timersInfo)
+	mux.HandleFunc("/api/timers.stage", s.timersStage)
 	return s, nil
 }
 

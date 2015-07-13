@@ -3,6 +3,7 @@ package command
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
@@ -67,11 +68,6 @@ func (c *Status) Run(ctx *cli.Context) error {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to read configuration: {{err}}"), err)
 	}
 
-	staged, err := vc.Staging()
-	if err != nil {
-		return errwrap.Wrapf(fmt.Sprintf("Failed to get staged files from the VCS: {{err}}"), err)
-	}
-
 	client := NewClient()
 
 	//fetch information on overall daemon
@@ -128,14 +124,21 @@ func (c *Status) Run(ctx *cli.Context) error {
 		//just print
 		c.Printf("Total time reads: %s", timer.Time())
 
-		if len(staged) > 0 {
-			c.Printf("Staged time:")
-			for path, f := range staged {
-				d, _ := timer.Distributor().Extract(path, f.Date())
-				c.Printf(" - %s (%s)", path, d)
+		tls := timer.Distributor().Timelines()
+		if len(tls) > 1 {
+			for path, tl := range tls {
+				if tl.Staged() == 0 {
+					continue
+				}
+
+				rel, err := filepath.Rel(vc.Root(), path)
+				if err != nil {
+					c.Printf("Failed to rel dir: %s", err)
+				}
+
+				c.Printf("- %s staged: %s, unstaged: %s", rel, tl.Staged(), tl.Unstaged())
 			}
 		}
-
 	}
 
 	return nil

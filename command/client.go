@@ -13,6 +13,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/timer"
+	"github.com/timeglass/glass/vcs"
 )
 
 var ErrRequestFailed = errors.New("Couldn't reach background service, did you install it using 'glass install'?")
@@ -31,8 +32,8 @@ func NewClient() *Client {
 }
 
 func (c *Client) Call(method string, params url.Values) ([]byte, error) {
-	loc := fmt.Sprintf("%s/api/%s?%s", c.endpoint, method, params.Encode())
-	resp, err := c.Get(loc)
+	loc := fmt.Sprintf("%s/api/%s", c.endpoint, method)
+	resp, err := c.Post(loc, "application/x-www-form-urlencoded", bytes.NewBuffer([]byte(params.Encode())))
 	if err != nil {
 		return nil, ErrRequestFailed
 	}
@@ -109,6 +110,24 @@ func (c *Client) ResetTimer(dir string) error {
 	if err != nil {
 		return err
 	}
+
+	return nil
+}
+
+func (c *Client) StageTimer(dir string, files map[string]*vcs.StagedFile) error {
+	params := url.Values{}
+	params.Set("dir", dir)
+
+	for _, sf := range files {
+		params.Add("files", fmt.Sprintf("%s:%d", sf.Path(), sf.Date().UnixNano()))
+	}
+
+	data, err := c.Call("timers.stage", params)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println(string(data))
 
 	return nil
 }

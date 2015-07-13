@@ -9,6 +9,7 @@ import (
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
 
 	"github.com/timeglass/glass/config"
+	"github.com/timeglass/glass/vcs"
 	"github.com/timeglass/snow/index"
 	"github.com/timeglass/snow/monitor"
 )
@@ -28,6 +29,7 @@ type Timer struct {
 	marshal chan chan []byte
 	unpause chan struct{}
 	save    chan struct{}
+	stage   chan []*vcs.StagedFile
 	pause   chan struct{}
 	reset   chan timerReset
 	stop    chan chan struct{}
@@ -68,6 +70,7 @@ func (t *Timer) init() error {
 	t.marshal = make(chan chan []byte)
 	t.unpause = make(chan struct{})
 	t.pause = make(chan struct{})
+	t.stage = make(chan []*vcs.StagedFile)
 	t.stop = make(chan chan struct{})
 	t.reset = make(chan timerReset)
 
@@ -185,6 +188,13 @@ func (t *Timer) Start() {
 				}
 
 				ch <- bytes
+			case files := <-t.stage:
+				log.Printf("[%s] Staging files:", d.Dir)
+				for _, f := range files {
+					log.Printf("[%s] - %s: upto %s", d.Dir, f.Path(), f.Date())
+					d.Distributor.Stage(f.Path(), f.Date())
+				}
+
 			case ch := <-t.stop:
 				tostop <- struct{}{}
 				ticker.Stop()
@@ -210,6 +220,11 @@ func (t *Timer) Start() {
 	}(t.timerData)
 
 	t.running = true
+}
+
+func (t *Timer) Stage(files []*vcs.StagedFile) {
+	//@todo, handle case when timer is not running?
+	t.stage <- files
 }
 
 func (t *Timer) Distributor() *Distributor {
