@@ -7,15 +7,10 @@ import (
 	"time"
 )
 
-type Block struct {
-	Width time.Duration `json:"w"`
-	Time  time.Time     `json:"t"`
-}
-
 //A timeline holds a number of lines
 //for a single file
 type Timeline struct {
-	Blocks []*Block `json:"b"`
+	Edges [][]time.Time `json:"e"`
 }
 
 func NewTimeline() *Timeline {
@@ -24,24 +19,40 @@ func NewTimeline() *Timeline {
 
 func (tl *Timeline) Length(upto time.Time) time.Duration {
 	res := time.Millisecond * 0
-	for _, b := range tl.Blocks {
-		if math.Floor(upto.Sub(b.Time).Seconds()) >= 0 {
-			res += b.Width
+	for _, e := range tl.Edges {
+		inrange := []time.Time{}
+		for _, point := range e {
+			//difference of a second is ok
+			if math.Floor(upto.Sub(point).Seconds()) >= 0 {
+				inrange = append(inrange, point)
+			}
 		}
+
+		if len(inrange) == 0 {
+			continue
+		}
+
+		first := inrange[0]
+		last := inrange[len(inrange)-1]
+		res += last.Sub(first)
 	}
 
 	return res
 }
 
-// func (tl *Timeline) OpenAt(t time.Time) {
-// 	tl.Edges = append(tl.Edges, []time.Time{t})
-// }
-// func (tl *Timeline) CloseAt(t time.Time) {
-// 	tl.ProgressTo(t)
-// }
+func (tl *Timeline) OpenAt(t time.Time) {
+	tl.Edges = append(tl.Edges, []time.Time{t})
+}
+func (tl *Timeline) CloseAt(t time.Time) {
+	tl.ProgressTo(t)
+}
 
-func (tl *Timeline) Add(w time.Duration, t time.Time) {
-	tl.Blocks = append(tl.Blocks, &Block{w, t})
+func (tl *Timeline) ProgressTo(t time.Time) {
+	if len(tl.Edges) == 0 {
+		return
+	}
+
+	tl.Edges[len(tl.Edges)-1] = append(tl.Edges[len(tl.Edges)-1], t)
 }
 
 //A distributor managed various files
@@ -51,8 +62,8 @@ type Distributor struct {
 }
 
 type distrData struct {
-	ActiveFiles map[string]string    `json:"af"`
-	Timelines   map[string]*Timeline `json:"tl"`
+	ActiveFile string               `json:"af"`
+	Timelines  map[string]*Timeline `json:"tl"`
 }
 
 var OverheadTimeline = "__overhead"
@@ -60,7 +71,6 @@ var OverheadTimeline = "__overhead"
 func NewDistributor() *Distributor {
 	d := &Distributor{
 		data: &distrData{
-			ActiveFiles: map[string]string{},
 			Timelines: map[string]*Timeline{
 				OverheadTimeline: NewTimeline(),
 			},
@@ -72,27 +82,16 @@ func NewDistributor() *Distributor {
 }
 
 func (d *Distributor) init() {}
+
+//close the open timeline
 func (d *Distributor) Break(t time.Time) {
-	d.data.ActiveFiles = map[string]string{}
-}
-
-func (d *Distributor) Distribute(dur time.Duration, t time.Time) {
-	if len(d.data.ActiveFiles) == 0 {
-		return
-	}
-
-	partd := dur.Nanoseconds() / int64(len(d.data.ActiveFiles))
-	for path, _ := range d.data.ActiveFiles {
-		if tl, ok := d.data.Timelines[path]; !ok {
-			//@todo no timeline while it should, emit error?
-			continue
-		} else {
-			tl.Add(time.Duration(partd), t)
-		}
+	if atl, ok := d.data.Timelines[d.data.ActiveFile]; ok {
+		atl.CloseAt(t)
 	}
 }
 
-func (d *Distributor) Register(fpath string) {
+//register a new point on the timeline
+func (d *Distributor) Register(fpath string, t time.Time) {
 	if fpath == "" {
 		fpath = OverheadTimeline
 	}
@@ -104,9 +103,22 @@ func (d *Distributor) Register(fpath string) {
 		d.data.Timelines[fpath] = tl
 	}
 
-	if _, ok = d.data.ActiveFiles[fpath]; !ok {
-		d.data.ActiveFiles[fpath] = ""
+	var atl *Timeline
+	if atl, ok = d.data.Timelines[d.data.ActiveFile]; !ok {
+		atl = nil
 	}
+
+	if atl != tl {
+		if atl != nil {
+			atl.CloseAt(t)
+		}
+
+		tl.OpenAt(t)
+	} else {
+		atl.ProgressTo(t)
+	}
+
+	d.data.ActiveFile = fpath
 }
 
 //extract the time spent on a file from the first point a given point in time

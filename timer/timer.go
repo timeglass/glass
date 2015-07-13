@@ -159,13 +159,15 @@ func (t *Timer) Start() {
 				if !d.Paused {
 					d.Time += d.MBU
 					log.Printf("[%s] Tick: %s", d.Dir, d.Time)
+					d.Distributor.Distribute(d.MBU, time.Now())
+
 					t.emitSave()
 				}
 
 			case fev := <-fevs:
 				log.Printf("[%s] File system activity in '%s'", d.Dir, fev.Dir())
 				extend <- struct{}{}
-				d.Distributor.Register(fev.Path(), time.Now())
+				d.Distributor.Register(fev.Path())
 				d.Paused = false
 			case ierr := <-ierrs:
 				log.Printf("[%s] Index error: %s", d.Dir, ierr)
