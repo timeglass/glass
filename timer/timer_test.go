@@ -133,8 +133,10 @@ func TestPauseUnpauseWriteFile(t *testing.T) {
 	<-time.After(time.Millisecond * 30)
 	assertTime(t, timer, time.Millisecond*10)
 
-	writeProjectFile(t, dir, "test.go", `{}`)
-	<-time.After(time.Millisecond * 100)
+	writeProjectFile(t, dir, "test.go", `{a}`)
+	<-time.After(time.Millisecond * 50)
+	writeProjectFile(t, dir, "test.go", `{bc}`)
+	<-time.After(time.Millisecond * 40)
 
 	assertTime(t, timer, time.Millisecond*30)
 }

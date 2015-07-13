@@ -28,7 +28,7 @@ type Timer struct {
 	reset   chan struct{}
 	stop    chan chan struct{}
 	monitor monitor.M
-	index   *index.Lazy
+	index   index.I
 
 	timerData *timerData
 }
@@ -181,6 +181,9 @@ func (t *Timer) Start() {
 			case ch := <-t.stop:
 				tostop <- struct{}{}
 				ticker.Stop()
+
+				//stop index
+				t.index.Stop()
 
 				//@todo Remove this at some point, it normalizes
 				//time after rapid stop start usage on OSX
