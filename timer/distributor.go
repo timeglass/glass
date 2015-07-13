@@ -54,21 +54,22 @@ var OverheadTimeline = "__overhead"
 
 func NewDistributor() *Distributor {
 	d := &Distributor{
-		data: &distrData{
-			ActiveFiles: map[string]string{},
-			Timelines: map[string]*Timeline{
-				OverheadTimeline: NewTimeline(),
-			},
-		},
+		data: &distrData{},
 	}
 
-	d.init()
+	d.Reset()
 	return d
 }
 
-func (d *Distributor) init() {}
 func (d *Distributor) Break() {
 	d.data.ActiveFiles = map[string]string{}
+}
+
+func (d *Distributor) Reset() {
+	d.Break()
+	d.data.Timelines = map[string]*Timeline{
+		OverheadTimeline: NewTimeline(),
+	}
 }
 
 func (d *Distributor) Distribute(dur time.Duration, t time.Time) {
@@ -127,7 +128,6 @@ func (d *Distributor) UnmarshalJSON(b []byte) error {
 		return err
 	}
 
-	d.init()
 	return nil
 }
 

@@ -155,6 +155,7 @@ func (t *Timer) Start() {
 				d.Paused = true
 			case <-t.reset:
 				d.Time = 0
+				d.Distributor.Reset()
 			case <-ticker.C:
 				if !d.Paused {
 					d.Time += d.MBU
