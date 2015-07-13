@@ -6,7 +6,6 @@ import (
 	"strconv"
 	"strings"
 	"text/template"
-	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
@@ -88,7 +87,7 @@ func (c *Status) Run(ctx *cli.Context) error {
 		c.Println("A new version is available, please upgrade: https://github.com/timeglass/glass/releases")
 	}
 
-	//fetch information on the timer specific to this directory
+	//fetch information on the timer specific to this directory.
 	c.Printf("Fetching timer info...")
 	timer, err := client.ReadTimer(vc.Root())
 	if err != nil {
@@ -129,14 +128,11 @@ func (c *Status) Run(ctx *cli.Context) error {
 		//just print
 		c.Printf("Total time reads: %s", timer.Time())
 
-		for fpath, tl := range timer.Distributor().Timelines() {
-			fmt.Println(fpath, tl.Length(time.Now()))
-		}
-
 		if len(staged) > 0 {
-			c.Print("Staged file changes:")
+			c.Printf("Staged time:")
 			for path, f := range staged {
-				c.Printf(" - %s (%s)", path, f.Date())
+				d, _ := timer.Distributor().Extract(path, f.Date())
+				c.Printf(" - %s (%s)", path, d)
 			}
 		}
 
