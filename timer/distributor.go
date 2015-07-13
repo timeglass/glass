@@ -7,6 +7,8 @@ import (
 	"time"
 )
 
+//A block of time that is positioned
+//on a timeline
 type Block struct {
 	Width time.Duration `json:"w"`
 	Time  time.Time     `json:"t"`
@@ -33,14 +35,7 @@ func (tl *Timeline) Length(upto time.Time) time.Duration {
 	return res
 }
 
-// func (tl *Timeline) OpenAt(t time.Time) {
-// 	tl.Edges = append(tl.Edges, []time.Time{t})
-// }
-// func (tl *Timeline) CloseAt(t time.Time) {
-// 	tl.ProgressTo(t)
-// }
-
-func (tl *Timeline) Add(w time.Duration, t time.Time) {
+func (tl *Timeline) Expand(w time.Duration, t time.Time) {
 	tl.Blocks = append(tl.Blocks, &Block{w, t})
 }
 
@@ -72,7 +67,7 @@ func NewDistributor() *Distributor {
 }
 
 func (d *Distributor) init() {}
-func (d *Distributor) Break(t time.Time) {
+func (d *Distributor) Break() {
 	d.data.ActiveFiles = map[string]string{}
 }
 
@@ -87,7 +82,7 @@ func (d *Distributor) Distribute(dur time.Duration, t time.Time) {
 			//@todo no timeline while it should, emit error?
 			continue
 		} else {
-			tl.Add(time.Duration(partd), t)
+			tl.Expand(time.Duration(partd), t)
 		}
 	}
 }

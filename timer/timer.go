@@ -151,7 +151,7 @@ func (t *Timer) Start() {
 					log.Printf("[%s] Pause", d.Dir)
 				}
 
-				d.Distributor.Break(time.Now())
+				d.Distributor.Break()
 				d.Paused = true
 			case <-t.reset:
 				d.Time = 0
