@@ -160,15 +160,16 @@ func (t *Timer) Start() {
 
 				d.Distributor.Break()
 				d.Paused = true
+				t.emitSave()
 			case r := <-t.reset:
 				d.Time = 0
 				d.Distributor.Reset(r.Staged)
+				t.emitSave()
 			case <-ticker.C:
 				if !d.Paused {
 					d.Time += d.MBU
 					log.Printf("[%s] Tick: %s", d.Dir, d.Time)
 					d.Distributor.Distribute(d.MBU, time.Now())
-
 					t.emitSave()
 				}
 
@@ -177,6 +178,7 @@ func (t *Timer) Start() {
 				extend <- struct{}{}
 				d.Distributor.Register(fev.Path())
 				d.Paused = false
+				t.emitSave()
 			case ierr := <-ierrs:
 				log.Printf("[%s] Index error: %s", d.Dir, ierr)
 			case merr := <-t.monitor.Errors():
@@ -194,6 +196,8 @@ func (t *Timer) Start() {
 					log.Printf("[%s] - %s: upto %s", d.Dir, f.Path(), f.Date())
 					d.Distributor.Stage(f.Path(), f.Date())
 				}
+
+				t.emitSave()
 
 			case ch := <-t.stop:
 				tostop <- struct{}{}

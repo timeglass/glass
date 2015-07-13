@@ -44,18 +44,33 @@ func TestSingleLineStage(t *testing.T) {
 	d.Distribute(time.Second, point("5s"))
 	d.Distribute(time.Second, point("10s"))
 	d.Distribute(time.Second, point("15s"))
+	d.Distribute(time.Second, point("20s"))
 
 	res, err := d.Extract("", point("10s"))
 	assert.NoError(t, err)
 	assert.Equal(t, time.Second*2, res)
 
-	err = d.Stage("", point("15s"))
+	d.Stage("", point("15s"))
 	assert.NoError(t, err)
+
+	res = d.Timelines()[OverheadTimeline].Staged()
+	assert.Equal(t, time.Second*3, res)
+
+	res = d.Timelines()[OverheadTimeline].Unstaged()
+	assert.Equal(t, time.Second*1, res)
+
 	d.Reset(true)
+
+	res = d.Timelines()[OverheadTimeline].Staged()
+	assert.Equal(t, time.Second*0, res)
+
+	res = d.Timelines()[OverheadTimeline].Unstaged()
+	assert.Equal(t, time.Second*1, res)
 
 	res, err = d.Extract("", point("10s"))
 	assert.NoError(t, err)
 	assert.Equal(t, time.Second*0, res)
+
 }
 
 func TestSingleLineCutoff(t *testing.T) {
