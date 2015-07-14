@@ -67,7 +67,7 @@ func TestSingleLineStage(t *testing.T) {
 	assert.Equal(t, time.Second*3, res)
 
 	d.Stage("", point("15s"))
-	d.RemoveStaging()
+	d.Reset(ResetOpts{Staged: true})
 
 	res = d.Timelines()[OverheadTimeline].Staged()
 	assert.Equal(t, time.Second*0, res)

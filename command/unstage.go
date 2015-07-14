@@ -3,7 +3,8 @@ package command
 import (
 	"fmt"
 	"os"
-	// "path/filepath"
+	"path/filepath"
+	"time"
 
 	"github.com/timeglass/glass/_vendor/github.com/codegangsta/cli"
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
@@ -60,8 +61,23 @@ func (c *Unstage) Run(ctx *cli.Context) error {
 	client := NewClient()
 	if ctx.Bool("all") {
 
-		_ = client
-		_ = staged
+		c.Printf("Unstaging time for %d files:", len(staged))
+		for _, f := range staged {
+			rel, err := filepath.Rel(vc.Root(), f.Path())
+			if err != nil {
+				c.Printf("Failed to determine relative path for '%s'", f.Path())
+			}
+
+			c.Printf("- %s", rel)
+
+			//we set the staging date in the past (unix epoch) to effectively unstage
+			f.SetDate(time.Unix(0, 0))
+		}
+
+		err := client.StageTimer(vc.Root(), staged)
+		if err != nil {
+			return errwrap.Wrapf(fmt.Sprintf("Failed to unstage files: {{err}}"), err)
+		}
 
 	} else {
 		c.Fatal("Not yet implemented")

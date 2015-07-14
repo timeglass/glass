@@ -31,7 +31,10 @@ func (c *Reset) Usage() string {
 }
 
 func (c *Reset) Flags() []cli.Flag {
-	return []cli.Flag{}
+	return []cli.Flag{
+		cli.BoolFlag{Name: "staged", Usage: "reset staged time as well"},
+		cli.BoolFlag{Name: "keep-unstaged", Usage: "prevent the removal of unstaged time"},
+	}
 }
 
 func (c *Reset) Action() func(ctx *cli.Context) {
@@ -52,7 +55,7 @@ func (c *Reset) Run(ctx *cli.Context) error {
 	c.Printf("Resetting timer to 0s...")
 
 	client := NewClient()
-	err = client.ResetTimer(vc.Root())
+	err = client.ResetTimer(vc.Root(), ctx.Bool("staged"), !ctx.Bool("keep-unstaged"))
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to reset timer: {{err}}"), err)
 	}

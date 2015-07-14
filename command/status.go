@@ -85,15 +85,15 @@ func (c *Status) Run(ctx *cli.Context) error {
 
 	//fetch information on the timer specific to this directory.
 	c.Printf("Fetching timer info...")
-	timer, err := client.ReadTimer(vc.Root())
+	t, err := client.ReadTimer(vc.Root())
 	if err != nil {
 		return errwrap.Wrapf(fmt.Sprintf("Failed to fetch timer: {{err}}"), err)
 	}
 
-	if terr := timer.Error(); terr != nil {
+	if terr := t.Error(); terr != nil {
 		c.Printf("Timer has failed: %s", terr)
 	} else {
-		if timer.IsPaused() {
+		if t.IsPaused() {
 			c.Printf("Timer is currently: PAUSED")
 		} else {
 			c.Printf("Timer is currently: RUNNING")
@@ -115,30 +115,52 @@ func (c *Status) Run(ctx *cli.Context) error {
 		}
 
 		//execute template and write to stdout
-		err = tmpl.Execute(os.Stdout, timer.Time())
+		err = tmpl.Execute(os.Stdout, t.Time())
 		if err != nil {
-			return errwrap.Wrapf(fmt.Sprintf("Failed to execute commit_message: template for time '%s': {{err}}", timer.Time()), err)
+			return errwrap.Wrapf(fmt.Sprintf("Failed to execute commit_message: template for time '%s': {{err}}", t.Time()), err)
 		}
 
 	} else {
 		//just print
-		c.Printf("Total time reads: %s", timer.Time())
+		c.Printf("Total time reads: %s", t.Time())
 
-		tls := timer.Distributor().Timelines()
-		if len(tls) > 1 {
-			for path, tl := range tls {
-				if tl.Staged() == 0 {
-					continue
-				}
+		all := t.Distributor().Timelines()
+		unstaged := map[string]*timer.Timeline{}
+		staged := map[string]*timer.Timeline{}
+		for path, tl := range all {
+			if tl.Unstaged() != 0 {
+				unstaged[path] = tl
+			}
 
+			if tl.Staged() != 0 {
+				staged[path] = tl
+			}
+		}
+
+		if len(staged) > 0 {
+			c.Printf("Staged time:")
+			for path, tl := range staged {
 				rel, err := filepath.Rel(vc.Root(), path)
 				if err != nil {
 					c.Printf("Failed to rel dir: %s", err)
 				}
 
-				c.Printf("- %s staged: %s, unstaged: %s", rel, tl.Staged(), tl.Unstaged())
+				c.Printf("- %s: %s", rel, tl.Staged())
 			}
 		}
+
+		if len(unstaged) > 0 {
+			c.Printf("Unstaged time:")
+			for path, tl := range unstaged {
+				rel, err := filepath.Rel(vc.Root(), path)
+				if err != nil {
+					c.Printf("Failed to rel dir: %s", err)
+				}
+
+				c.Printf("- %s: %s", rel, tl.Unstaged())
+			}
+		}
+
 	}
 
 	return nil

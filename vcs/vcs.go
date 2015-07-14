@@ -35,9 +35,10 @@ func NewStagedFile(date time.Time, hash, path string) *StagedFile {
 	return &StagedFile{date, hash, path}
 }
 
-func (g *StagedFile) Date() time.Time { return g.date }
-func (g *StagedFile) Hash() string    { return g.hash }
-func (g *StagedFile) Path() string    { return g.path }
+func (sf *StagedFile) SetDate(t time.Time) { sf.date = t }
+func (sf *StagedFile) Date() time.Time     { return sf.date }
+func (sf *StagedFile) Hash() string        { return sf.hash }
+func (sf *StagedFile) Path() string        { return sf.path }
 
 type TimeData interface {
 	Total() time.Duration

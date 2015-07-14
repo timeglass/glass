@@ -27,12 +27,17 @@ type Timer struct {
 	save    chan struct{}
 	stage   chan []*vcs.StagedFile
 	pause   chan struct{}
-	reset   chan struct{}
+	reset   chan ResetOpts
 	stop    chan chan struct{}
 	monitor monitor.M
 	index   index.I
 
 	timerData *timerData
+}
+
+type ResetOpts struct {
+	Staged   bool
+	Unstaged bool
 }
 
 type timerData struct {
@@ -68,7 +73,7 @@ func (t *Timer) init() error {
 	t.pause = make(chan struct{})
 	t.stage = make(chan []*vcs.StagedFile)
 	t.stop = make(chan chan struct{})
-	t.reset = make(chan struct{})
+	t.reset = make(chan ResetOpts)
 
 	sysdir, err := SystemTimeglassPathCreateIfNotExist()
 	if err != nil {
@@ -103,6 +108,11 @@ func (t *Timer) init() error {
 	}
 
 	return nil
+}
+
+func (t *Timer) doreset(opts ResetOpts) {
+	t.timerData.Time = 0
+	t.timerData.Distributor.Reset(opts)
 }
 
 func (t *Timer) emitSave() {
@@ -140,8 +150,12 @@ func (t *Timer) Start() {
 		d.Time += d.MBU
 		for {
 			select {
+
+			// read time
 			case ch := <-t.read:
 				ch <- d.Time
+
+			// unpause
 			case <-t.unpause:
 				extend <- struct{}{}
 				if d.Paused == true {
@@ -149,6 +163,8 @@ func (t *Timer) Start() {
 				}
 
 				d.Paused = false
+
+			// pause
 			case <-t.pause:
 				if d.Paused == false {
 					log.Printf("[%s] Pause", d.Dir)
@@ -157,10 +173,13 @@ func (t *Timer) Start() {
 				d.Distributor.Break()
 				d.Paused = true
 				t.emitSave()
-			case <-t.reset:
-				d.Time = 0
-				d.Distributor.Reset()
+
+			// reset
+			case opts := <-t.reset:
+				t.doreset(opts)
 				t.emitSave()
+
+			// tick
 			case <-ticker.C:
 				if !d.Paused {
 					d.Time += d.MBU
@@ -169,23 +188,7 @@ func (t *Timer) Start() {
 					t.emitSave()
 				}
 
-			case fev := <-fevs:
-				log.Printf("[%s] File system activity in '%s'", d.Dir, fev.Dir())
-				extend <- struct{}{}
-				d.Distributor.Register(fev.Path())
-				d.Paused = false
-				t.emitSave()
-			case ierr := <-ierrs:
-				log.Printf("[%s] Index error: %s", d.Dir, ierr)
-			case merr := <-t.monitor.Errors():
-				log.Printf("[%s] Monitor error: %s", d.Dir, merr)
-			case ch := <-t.marshal:
-				bytes, err := t.marshalJSON()
-				if err != nil {
-					log.Printf("[%s] Failed to marshal JSON: %s", d.Dir, err)
-				}
-
-				ch <- bytes
+			// stage
 			case files := <-t.stage:
 				log.Printf("[%s] Staging files:", d.Dir)
 				for _, f := range files {
@@ -195,6 +198,32 @@ func (t *Timer) Start() {
 
 				t.emitSave()
 
+			// file events
+			case fev := <-fevs:
+				log.Printf("[%s] File system activity in '%s'", d.Dir, fev.Dir())
+				extend <- struct{}{}
+				d.Distributor.Register(fev.Path())
+				d.Paused = false
+				t.emitSave()
+
+			// errors (index)
+			case ierr := <-ierrs:
+				log.Printf("[%s] Index error: %s", d.Dir, ierr)
+
+			// errors (monitor)
+			case merr := <-t.monitor.Errors():
+				log.Printf("[%s] Monitor error: %s", d.Dir, merr)
+
+			// encoding
+			case ch := <-t.marshal:
+				bytes, err := t.marshalJSON()
+				if err != nil {
+					log.Printf("[%s] Failed to marshal JSON: %s", d.Dir, err)
+				}
+
+				ch <- bytes
+
+			// stop
 			case ch := <-t.stop:
 				tostop <- struct{}{}
 				ticker.Stop()
@@ -249,13 +278,13 @@ func (t *Timer) Pause() {
 	t.pause <- struct{}{}
 }
 
-func (t *Timer) Reset() {
+func (t *Timer) Reset(opt ResetOpts) {
 	if !t.running {
-		t.timerData.Time = 0
+		t.doreset(opt)
 		return
 	}
 
-	t.reset <- struct{}{}
+	t.reset <- opt
 }
 
 func (t *Timer) Stop() {

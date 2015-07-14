@@ -3,6 +3,7 @@ package timer
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"math"
 	"time"
 )
@@ -90,7 +91,7 @@ func NewDistributor() *Distributor {
 		data: &distrData{},
 	}
 
-	d.Reset()
+	d.Reset(ResetOpts{})
 	return d
 }
 
@@ -98,25 +99,31 @@ func (d *Distributor) Break() {
 	d.data.ActiveFiles = map[string]string{}
 }
 
-func (d *Distributor) RemoveStaging() {
-	//only remove staged blocks
-	for _, tl := range d.data.Timelines {
+func (d *Distributor) Reset(opt ResetOpts) {
+	d.Break()
+
+	tls := map[string]*Timeline{}
+	for path, tl := range d.data.Timelines {
 		blcks := []*Block{}
 		for _, b := range tl.Blocks {
-			if !b.Staged {
-				blcks = append(blcks, b)
+			if b.Staged {
+				if opt.Staged == false {
+					blcks = append(blcks, b)
+				}
+			} else {
+				if opt.Unstaged == false {
+					blcks = append(blcks, b)
+				}
 			}
 		}
 
-		tl.Blocks = blcks
+		if len(blcks) != 0 {
+			tl.Blocks = blcks
+			tls[path] = tl
+		}
 	}
-}
 
-func (d *Distributor) Reset() {
-	d.Break()
-	d.data.Timelines = map[string]*Timeline{
-		OverheadTimeline: NewTimeline(),
-	}
+	d.data.Timelines = tls
 }
 
 func (d *Distributor) Distribute(dur time.Duration, t time.Time) {
@@ -159,9 +166,11 @@ func (d *Distributor) Stage(fpath string, upto time.Time) {
 		fpath = OverheadTimeline
 	}
 
-	//no timeline is a noop
+	//no timeline is a no-op
 	if tl, ok := d.data.Timelines[fpath]; ok {
 		tl.Stage(upto)
+	} else {
+		log.Printf("Failed to get a timeline to unstage on for '%s'", fpath)
 	}
 }
 

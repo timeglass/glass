@@ -118,7 +118,16 @@ func (s *Server) timersReset(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			t.Reset()
+			opts := timer.ResetOpts{}
+			if res, _ := strconv.ParseBool(r.Form.Get("staged")); res {
+				opts.Staged = res
+			}
+
+			if res, _ := strconv.ParseBool(r.Form.Get("unstaged")); res {
+				opts.Unstaged = res
+			}
+
+			t.Reset(opts)
 		}
 	}
 

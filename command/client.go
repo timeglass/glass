@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/timeglass/glass/_vendor/github.com/hashicorp/errwrap"
@@ -102,9 +103,11 @@ func (c *Client) DeleteTimer(dir string) error {
 	return nil
 }
 
-func (c *Client) ResetTimer(dir string) error {
+func (c *Client) ResetTimer(dir string, staged, unstaged bool) error {
 	params := url.Values{}
 	params.Set("dir", dir)
+	params.Set("staged", strconv.FormatBool(staged))
+	params.Set("unstaged", strconv.FormatBool(unstaged))
 
 	_, err := c.Call("timers.reset", params)
 	if err != nil {
@@ -122,12 +125,10 @@ func (c *Client) StageTimer(dir string, files map[string]*vcs.StagedFile) error 
 		params.Add("files", fmt.Sprintf("%s:%d", sf.Path(), sf.Date().UnixNano()))
 	}
 
-	data, err := c.Call("timers.stage", params)
+	_, err := c.Call("timers.stage", params)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println(string(data))
 
 	return nil
 }
