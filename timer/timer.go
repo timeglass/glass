@@ -14,10 +14,6 @@ import (
 	"github.com/timeglass/snow/monitor"
 )
 
-type timerReset struct {
-	Staged bool
-}
-
 // a timer without explicit start
 // and stop methods, let garbage collector
 // remove any routines, channels etc when
@@ -31,7 +27,7 @@ type Timer struct {
 	save    chan struct{}
 	stage   chan []*vcs.StagedFile
 	pause   chan struct{}
-	reset   chan timerReset
+	reset   chan struct{}
 	stop    chan chan struct{}
 	monitor monitor.M
 	index   index.I
@@ -72,7 +68,7 @@ func (t *Timer) init() error {
 	t.pause = make(chan struct{})
 	t.stage = make(chan []*vcs.StagedFile)
 	t.stop = make(chan chan struct{})
-	t.reset = make(chan timerReset)
+	t.reset = make(chan struct{})
 
 	sysdir, err := SystemTimeglassPathCreateIfNotExist()
 	if err != nil {
@@ -161,9 +157,9 @@ func (t *Timer) Start() {
 				d.Distributor.Break()
 				d.Paused = true
 				t.emitSave()
-			case r := <-t.reset:
+			case <-t.reset:
 				d.Time = 0
-				d.Distributor.Reset(r.Staged)
+				d.Distributor.Reset()
 				t.emitSave()
 			case <-ticker.C:
 				if !d.Paused {
@@ -253,13 +249,13 @@ func (t *Timer) Pause() {
 	t.pause <- struct{}{}
 }
 
-func (t *Timer) Reset(staged bool) {
+func (t *Timer) Reset() {
 	if !t.running {
 		t.timerData.Time = 0
 		return
 	}
 
-	t.reset <- timerReset{staged}
+	t.reset <- struct{}{}
 }
 
 func (t *Timer) Stop() {

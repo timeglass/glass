@@ -118,12 +118,7 @@ func (s *Server) timersReset(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			staged, err := strconv.ParseBool(r.Form.Get("staged"))
-			if err != nil {
-				staged = false
-			}
-
-			t.Reset(staged)
+			t.Reset()
 		}
 	}
 

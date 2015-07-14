@@ -11,37 +11,37 @@ import (
 	"github.com/timeglass/glass/vcs"
 )
 
-type Add struct {
+type Stage struct {
 	*command
 }
 
-func NewAdd() *Add {
-	return &Add{newCommand()}
+func NewStage() *Stage {
+	return &Stage{newCommand()}
 }
 
-func (c *Add) Name() string {
-	return "add"
+func (c *Stage) Name() string {
+	return "stage"
 }
 
-func (c *Add) Description() string {
-	return fmt.Sprintf("Asks the deamon for general information and the specifics of the current timer, it allows for arbritary formatting of the current time measurement.")
+func (c *Stage) Description() string {
+	return fmt.Sprintf("...")
 }
 
-func (c *Add) Usage() string {
-	return "Show info on the timer for this repository"
+func (c *Stage) Usage() string {
+	return "..."
 }
 
-func (c *Add) Flags() []cli.Flag {
+func (c *Stage) Flags() []cli.Flag {
 	return []cli.Flag{
 		cli.BoolFlag{Name: "all,A", Usage: "Stage time spend on all files currently staged in git"},
 	}
 }
 
-func (c *Add) Action() func(ctx *cli.Context) {
+func (c *Stage) Action() func(ctx *cli.Context) {
 	return c.command.Action(c.Run)
 }
 
-func (c *Add) Run(ctx *cli.Context) error {
+func (c *Stage) Run(ctx *cli.Context) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return errwrap.Wrapf("Failed to fetch current working dir: {{err}}", err)

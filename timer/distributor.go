@@ -62,6 +62,8 @@ func (tl *Timeline) Stage(upto time.Time) {
 	for _, b := range tl.Blocks {
 		if math.Floor(upto.Sub(b.Time).Seconds()) >= 0 {
 			b.Staged = true
+		} else {
+			b.Staged = false
 		}
 	}
 }
@@ -88,7 +90,7 @@ func NewDistributor() *Distributor {
 		data: &distrData{},
 	}
 
-	d.Reset(false)
+	d.Reset()
 	return d
 }
 
@@ -96,25 +98,24 @@ func (d *Distributor) Break() {
 	d.data.ActiveFiles = map[string]string{}
 }
 
-func (d *Distributor) Reset(staged bool) {
-	d.Break()
-	if staged {
-		//only remove staged blocks
-		for _, tl := range d.data.Timelines {
-			blcks := []*Block{}
-			for _, b := range tl.Blocks {
-				if !b.Staged {
-					blcks = append(blcks, b)
-				}
+func (d *Distributor) RemoveStaging() {
+	//only remove staged blocks
+	for _, tl := range d.data.Timelines {
+		blcks := []*Block{}
+		for _, b := range tl.Blocks {
+			if !b.Staged {
+				blcks = append(blcks, b)
 			}
+		}
 
-			tl.Blocks = blcks
-		}
-	} else {
-		//reset all
-		d.data.Timelines = map[string]*Timeline{
-			OverheadTimeline: NewTimeline(),
-		}
+		tl.Blocks = blcks
+	}
+}
+
+func (d *Distributor) Reset() {
+	d.Break()
+	d.data.Timelines = map[string]*Timeline{
+		OverheadTimeline: NewTimeline(),
 	}
 }
 

@@ -76,7 +76,7 @@ func TestBasicTimeReadWhenStarted(t *testing.T) {
 	assert.NoError(t, err)
 
 	assertTime(t, timer, time.Millisecond*10)
-	timer.Reset(false)
+	timer.Reset()
 	assertTime(t, timer, 0)
 }
 
@@ -88,7 +88,7 @@ func TestBasicTimeReadResetPauseUnpauseWhenStopped(t *testing.T) {
 	timer.Stop()
 
 	assertTime(t, timer, time.Millisecond*10)
-	timer.Reset(false)
+	timer.Reset()
 	assertTime(t, timer, 0)
 
 	timer.Pause()

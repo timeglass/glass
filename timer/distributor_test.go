@@ -51,7 +51,6 @@ func TestSingleLineStage(t *testing.T) {
 	assert.Equal(t, time.Second*2, res)
 
 	d.Stage("", point("15s"))
-	assert.NoError(t, err)
 
 	res = d.Timelines()[OverheadTimeline].Staged()
 	assert.Equal(t, time.Second*3, res)
@@ -59,7 +58,16 @@ func TestSingleLineStage(t *testing.T) {
 	res = d.Timelines()[OverheadTimeline].Unstaged()
 	assert.Equal(t, time.Second*1, res)
 
-	d.Reset(true)
+	d.Stage("", point("5s"))
+
+	res = d.Timelines()[OverheadTimeline].Staged()
+	assert.Equal(t, time.Second*1, res)
+
+	res = d.Timelines()[OverheadTimeline].Unstaged()
+	assert.Equal(t, time.Second*3, res)
+
+	d.Stage("", point("15s"))
+	d.RemoveStaging()
 
 	res = d.Timelines()[OverheadTimeline].Staged()
 	assert.Equal(t, time.Second*0, res)

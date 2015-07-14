@@ -44,7 +44,8 @@ func main() {
 		command.NewStart(),     //create timer for current directory, start measuring
 		command.NewPause(),     //pause timer for the current directory, restart on file activity
 		command.NewStatus(),    //fetch info of the timer for the current directory
-		command.NewAdd(),       //stage time for files currently staged by git
+		command.NewStage(),     //stage time for files currently staged by git
+		command.NewUnstage(),   //unstage time for files that were staged
 		command.NewReset(),     //reset the timer to 0s
 		command.NewStop(),      //remove timer for current directory, discarding meaurement
 		command.NewPush(),      //push notes branch to remote
